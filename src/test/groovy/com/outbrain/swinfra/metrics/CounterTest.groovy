@@ -78,6 +78,7 @@ class CounterTest extends Specification {
         final String[] labelNames = ["label1", "label2"]
         final String[] labelValues1 = ["val1", "val2"]
         final String[] labelValues2 = ["val3", "val4"]
+
         given:
             final List<Sample> samples1 = [Sample.from(name, Arrays.asList(labelNames), Arrays.asList(labelValues1), 5)]
             final List<Sample> samples2 = [Sample.from(name, Arrays.asList(labelNames), Arrays.asList(labelValues2), 6)]
