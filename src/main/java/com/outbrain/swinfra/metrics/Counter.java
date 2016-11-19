@@ -35,7 +35,7 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
 
   @Override
   ChildMetricRepo<com.codahale.metrics.Counter> createChildMetricRepo() {
-    if (labelNames.size() == 0) {
+    if (getLabelNames().size() == 0) {
       return new UnlabeledChildRepo<>(new MetricData<>(new com.codahale.metrics.Counter(), new String[]{}));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
@@ -53,8 +53,8 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
   @Override
   MetricFamilySamples toMetricFamilySamples(final MetricData<com.codahale.metrics.Counter> metricData) {
     final List<Sample> samples = singletonList(
-        Sample.from(name, labelNames, metricData.getLabelValues(), metricData.getMetric().getCount()));
-    return MetricFamilySamples.from(name, COUNTER, help, samples);
+        Sample.from(getName(), getLabelNames(), metricData.getLabelValues(), metricData.getMetric().getCount()));
+    return MetricFamilySamples.from(getName(), COUNTER, getHelp(), samples);
   }
 
   public static class CounterBuilder extends AbstractMetricBuilder<Counter, CounterBuilder> {

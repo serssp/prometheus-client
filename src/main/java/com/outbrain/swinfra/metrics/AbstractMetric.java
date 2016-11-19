@@ -13,9 +13,9 @@ import static com.outbrain.swinfra.metrics.StringUtils.isNotBlank;
 
 abstract class AbstractMetric<T extends Metric> {
 
-  final String name;
-  final String help;
-  final List<String> labelNames;
+  private final String name;
+  private final String help;
+  private final List<String> labelNames;
   private ChildMetricRepo<T> childMetricRepo;
 
   AbstractMetric(final String name,
@@ -31,6 +31,18 @@ abstract class AbstractMetric<T extends Metric> {
   abstract MetricType getType();
 
   abstract MetricFamilySamples toMetricFamilySamples(final MetricData<T> metricData);
+
+  String getName() {
+    return name;
+  }
+
+  String getHelp() {
+    return help;
+  }
+
+  List<String> getLabelNames() {
+    return labelNames;
+  }
 
   void initChildMetricRepo() {
     this.childMetricRepo = createChildMetricRepo();

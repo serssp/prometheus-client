@@ -30,7 +30,7 @@ public class Summary extends AbstractMetric<Histogram> {
 
   @Override
   ChildMetricRepo<Histogram> createChildMetricRepo() {
-    if (labelNames.size() == 0) {
+    if (getLabelNames().size() == 0) {
       return new UnlabeledChildRepo<>(new MetricData<>(createHistogram(), new String[]{}));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
@@ -52,20 +52,20 @@ public class Summary extends AbstractMetric<Histogram> {
   @Override
   MetricFamilySamples toMetricFamilySamples(final MetricData<Histogram> metricData) {
     final List<Sample> samples = createQuantileSamples(metricData);
-    return MetricFamilySamples.from(name, SUMMARY, help, samples);
+    return MetricFamilySamples.from(getName(), SUMMARY, getHelp(), samples);
   }
 
   private List<Sample> createQuantileSamples(final MetricData<Histogram> metricData) {
     final Snapshot snapshot = metricData.getMetric().getSnapshot();
-    final List<String> labels = addToList(labelNames, QUANTILE_LABEL);
+    final List<String> labels = addToList(getLabelNames(), QUANTILE_LABEL);
     final List<String> labelValues = metricData.getLabelValues();
     return Lists.newArrayList(
-      Sample.from(name, labels, addToList(labelValues, "0.5"), snapshot.getMedian()),
-      Sample.from(name, labels, addToList(labelValues, "0.75"), snapshot.get75thPercentile()),
-      Sample.from(name, labels, addToList(labelValues, "0.95"), snapshot.get95thPercentile()),
-      Sample.from(name, labels, addToList(labelValues, "0.98"), snapshot.get98thPercentile()),
-      Sample.from(name, labels, addToList(labelValues, "0.99"), snapshot.get99thPercentile()),
-      Sample.from(name, labels, addToList(labelValues, "0.999"), snapshot.get999thPercentile())
+      Sample.from(getName(), labels, addToList(labelValues, "0.5"), snapshot.getMedian()),
+      Sample.from(getName(), labels, addToList(labelValues, "0.75"), snapshot.get75thPercentile()),
+      Sample.from(getName(), labels, addToList(labelValues, "0.95"), snapshot.get95thPercentile()),
+      Sample.from(getName(), labels, addToList(labelValues, "0.98"), snapshot.get98thPercentile()),
+      Sample.from(getName(), labels, addToList(labelValues, "0.99"), snapshot.get99thPercentile()),
+      Sample.from(getName(), labels, addToList(labelValues, "0.999"), snapshot.get999thPercentile())
     );
   }
 

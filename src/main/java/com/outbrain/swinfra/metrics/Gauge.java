@@ -46,8 +46,8 @@ public class Gauge extends AbstractMetric<CachedGauge<Double>> {
   @Override
   MetricFamilySamples toMetricFamilySamples(final MetricData<CachedGauge<Double>> metricData) {
     final List<Sample> samples = singletonList(
-        Sample.from(name, labelNames, metricData.getLabelValues(), metricData.getMetric().getValue()));
-    return MetricFamilySamples.from(name, getType(), help, samples);
+        Sample.from(getName(), getLabelNames(), metricData.getLabelValues(), metricData.getMetric().getValue()));
+    return MetricFamilySamples.from(getName(), getType(), getHelp(), samples);
   }
 
   @Override
