@@ -1,9 +1,11 @@
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'groovy'
+plugins {
+    id 'idea'
+    id 'groovy'
+    id 'maven'
+}
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+group = 'com.outbrain.swinfra'
+version = '0.1-SNAPSHOT'
 
 repositories {
     mavenCentral()
