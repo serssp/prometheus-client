@@ -16,18 +16,7 @@ class SummaryTest extends Specification {
     private static final String HELP = "HELP"
     private static final List<String> QUANTILE_LABEL = singletonList("quantile")
 
-    private Sample sampleForQuantile(final String quantile, final double value) {
-        return Sample.from(NAME, QUANTILE_LABEL, [quantile], value)
-    }
-
-    private Sample sampleForQuantile(final String quantile,
-                                     final double value,
-                                     final List<String> labelNames,
-                                     final List<String> labelValues) {
-        final List<String> labels = labelNames + QUANTILE_LABEL
-        final List<String> values = labelValues + quantile
-        return Sample.from(NAME, labels, values, value)
-    }
+    final MetricRegistry metricRegistry = new MetricRegistry();
 
     def 'Summary with no labels should return correct samples for newly initialized metric'() {
         given:
@@ -46,7 +35,7 @@ class SummaryTest extends Specification {
             ]
 
         when:
-            final Summary summary = new SummaryBuilder(NAME, HELP).register();
+            final Summary summary = new SummaryBuilder(NAME, HELP).register(metricRegistry);
 
         then:
             summary.getSamples().sort() == metricFamilySamples.sort()
@@ -69,7 +58,7 @@ class SummaryTest extends Specification {
         ]
 
         when:
-            final Summary summary = new SummaryBuilder(NAME, HELP).register();
+            final Summary summary = new SummaryBuilder(NAME, HELP).register(metricRegistry);
             1.upto(1000, {summary.observe(it)})
 
         then:
@@ -80,7 +69,7 @@ class SummaryTest extends Specification {
         final List<String> labelNames = ["label1", "label2"]
         final List<String> labelValues1 = ["value1", "value2"]
         final List<String> labelValues2 = ["value3", "value4"]
-        
+
         given:
             final List<Sample> samples1 = [
                 sampleForQuantile("0.5", 500, labelNames, labelValues1),
@@ -111,11 +100,24 @@ class SummaryTest extends Specification {
         when:
             final Summary summary = new SummaryBuilder(NAME, HELP)
                 .withLabels(labelNames as String[])
-                .register();
+                .register(metricRegistry);
             1.upto(1000, {summary.observe(it, labelValues1 as String[])})
             1.upto(1000, {summary.observe(it, labelValues2 as String[])})
 
         then:
             summary.getSamples().sort() == metricFamilySamples.sort()
+    }
+
+    private static Sample sampleForQuantile(final String quantile, final double value) {
+        return Sample.from(NAME, QUANTILE_LABEL, [quantile], value)
+    }
+
+    private static Sample sampleForQuantile(final String quantile,
+                                            final double value,
+                                            final List<String> labelNames,
+                                            final List<String> labelValues) {
+        final List<String> labels = labelNames + QUANTILE_LABEL
+        final List<String> values = labelValues + quantile
+        return Sample.from(NAME, labels, values, value)
     }
 }

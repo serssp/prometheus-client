@@ -15,11 +15,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleSupplier;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
 import static com.outbrain.swinfra.metrics.LabelUtils.labelsToCommaDelimitedString;
 import static com.outbrain.swinfra.metrics.MetricType.GAUGE;
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 
 /**
  * An implementation of a Gauge metric. A gauge is a decimal value that can increase or decrease.
@@ -122,7 +122,7 @@ public class Gauge extends AbstractMetric<CachedGauge<Double>> {
 
     private void validateValueSuppliers() {
       valueSuppliers.values()
-                    .forEach(valueSupplier -> checkNotNull(valueSupplier, "Null value suppliers are not allowed"));
+                    .forEach(valueSupplier -> requireNonNull(valueSupplier, "Null value suppliers are not allowed"));
     }
 
     private void validateValueSuppliersLabels() {

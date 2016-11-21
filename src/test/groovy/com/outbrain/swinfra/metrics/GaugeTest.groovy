@@ -13,6 +13,8 @@ class GaugeTest extends Specification {
     private static final String NAME = "NAME"
     private static final String HELP = "HELP"
 
+    final MetricRegistry metricRegistry = new MetricRegistry();
+    
     def 'Gauge should return the correct samples without labels'() {
         final double expectedValue = 239487234
 
@@ -29,7 +31,7 @@ class GaugeTest extends Specification {
         when:
             final Gauge gauge = new GaugeBuilder(NAME, HELP)
                 .withValueSupplier(supplier)
-                .register()
+                .register(metricRegistry)
 
         then:
             gauge.getSamples() == metricFamilySamples;
@@ -66,7 +68,7 @@ class GaugeTest extends Specification {
             .withLabels(labelNames)
             .withValueSupplier(supplier1, labelValues1)
             .withValueSupplier(supplier2, labelValues2)
-            .register()
+            .register(metricRegistry)
 
 
         then:
@@ -77,7 +79,7 @@ class GaugeTest extends Specification {
         when:
             new GaugeBuilder(NAME, HELP)
                 .withValueSupplier(null, "val1", "val2")
-                .register()
+                .register(metricRegistry)
 
         then:
             final NullPointerException ex = thrown()
@@ -96,7 +98,7 @@ class GaugeTest extends Specification {
             new GaugeBuilder(NAME, HELP)
                 .withLabels("label1", "label2")
                 .withValueSupplier(valueSupplier, "val1", "val2", "extraVal")
-                .register()
+                .register(metricRegistry)
 
         then:
             final IllegalArgumentException ex = thrown()
@@ -115,7 +117,7 @@ class GaugeTest extends Specification {
             new GaugeBuilder(NAME, HELP)
                 .withLabels("label1", "label2")
                 .withValueSupplier(valueSupplier, "val1")
-                .register()
+                .register(metricRegistry)
 
         then:
             final IllegalArgumentException ex = thrown()

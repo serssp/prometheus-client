@@ -1,6 +1,7 @@
 package com.outbrain.swinfra.metrics;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.outbrain.swinfra.metrics.MetricRegistry.DEFAULT_REGISTRY;
 import static com.outbrain.swinfra.metrics.StringUtils.isNotBlank;
 
 public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends AbstractMetricBuilder<T, B>> {
@@ -33,12 +34,16 @@ public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends 
 
   protected abstract T create(final String fullName, final String help, final String[] labelNames);
 
-  public T register() {
+  T register() {
+    return this.register(DEFAULT_REGISTRY);
+  }
+
+  //Handle cases where a metric is created but it already exists
+  public T register(final MetricRegistry metricRegistry) {
     validateParams();
     final T metric = create(createFullName(), help, labelNames);
     metric.initChildMetricRepo();
-    //todo fix this
-    //    MetricRegistry.INSTANCE.register(metric);
+    metricRegistry.register(metric);
     return metric;
   }
 
