@@ -2,10 +2,10 @@ package com.outbrain.swinfra.metrics;
 
 
 import com.outbrain.swinfra.metrics.MetricFamilySamples.Sample;
-import com.outbrain.swinfra.metrics.repositories.ChildMetricRepo;
-import com.outbrain.swinfra.metrics.repositories.LabeledChildrenRepo;
-import com.outbrain.swinfra.metrics.repositories.MetricData;
-import com.outbrain.swinfra.metrics.repositories.UnlabeledChildRepo;
+import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
+import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
+import com.outbrain.swinfra.metrics.children.MetricData;
+import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 
 import java.util.List;
 
@@ -13,6 +13,14 @@ import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabe
 import static com.outbrain.swinfra.metrics.MetricType.COUNTER;
 import static java.util.Collections.singletonList;
 
+/**
+ * An implementation of a Counter metric. A counter is a whole number that can only increase its value.
+ * <p>
+ * The counter exposes a single time-series with its value and labels.
+ * </p>
+ *
+ * @see <a href="https://prometheus.io/docs/concepts/metric_types/#counter">Prometheus counter metric</a>
+ */
 public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
 
   private Counter(final String name, final String help, final String[] labelNames) {

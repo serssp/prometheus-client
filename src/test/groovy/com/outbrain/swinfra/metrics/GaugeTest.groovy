@@ -10,15 +10,15 @@ import static com.outbrain.swinfra.metrics.MetricType.GAUGE
 
 class GaugeTest extends Specification {
 
-    private final String name = "name"
-    private final String help = "help"
+    private static final String NAME = "NAME"
+    private static final String HELP = "HELP"
 
     def 'Gauge should return the correct samples without labels'() {
         final double expectedValue = 239487234
 
         given:
-            final List<Sample> samples = [Sample.from(name, [], [], expectedValue)]
-            final List<MetricFamilySamples> metricFamilySamples = [MetricFamilySamples.from(name, GAUGE, help, samples)]
+            final List<Sample> samples = [Sample.from(NAME, [], [], expectedValue)]
+            final List<MetricFamilySamples> metricFamilySamples = [MetricFamilySamples.from(NAME, GAUGE, HELP, samples)]
 
             final DoubleSupplier supplier = new DoubleSupplier() {
                 @Override
@@ -27,7 +27,7 @@ class GaugeTest extends Specification {
                 }
             }
         when:
-            final Gauge gauge = new GaugeBuilder(name, help)
+            final Gauge gauge = new GaugeBuilder(NAME, HELP)
                 .withValueSupplier(supplier)
                 .register()
 
@@ -57,12 +57,12 @@ class GaugeTest extends Specification {
         }
 
         given:
-            final List<Sample> samples1 = [Sample.from(name, Arrays.asList(labelNames), Arrays.asList(labelValues1), expectedValue1)]
-            final List<Sample> samples2 = [Sample.from(name, Arrays.asList(labelNames), Arrays.asList(labelValues2), expectedValue2)]
-            final List<MetricFamilySamples> metricFamilySamples = [MetricFamilySamples.from(name, GAUGE, help, samples1), MetricFamilySamples.from(name, GAUGE, help, samples2)]
+            final List<Sample> samples1 = [Sample.from(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), expectedValue1)]
+            final List<Sample> samples2 = [Sample.from(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), expectedValue2)]
+            final List<MetricFamilySamples> metricFamilySamples = [MetricFamilySamples.from(NAME, GAUGE, HELP, samples1), MetricFamilySamples.from(NAME, GAUGE, HELP, samples2)]
 
         when:
-            final Gauge gauge = new GaugeBuilder(name, help)
+            final Gauge gauge = new GaugeBuilder(NAME, HELP)
             .withLabels(labelNames)
             .withValueSupplier(supplier1, labelValues1)
             .withValueSupplier(supplier2, labelValues2)
@@ -75,7 +75,7 @@ class GaugeTest extends Specification {
 
     def 'GaugeBuilder should throw an exception on null value supplier'() {
         when:
-            new GaugeBuilder(name, help)
+            new GaugeBuilder(NAME, HELP)
                 .withValueSupplier(null, "val1", "val2")
                 .register()
 
@@ -93,7 +93,7 @@ class GaugeTest extends Specification {
         }
 
         when:
-            new GaugeBuilder(name, help)
+            new GaugeBuilder(NAME, HELP)
                 .withLabels("label1", "label2")
                 .withValueSupplier(valueSupplier, "val1", "val2", "extraVal")
                 .register()
@@ -112,7 +112,7 @@ class GaugeTest extends Specification {
         }
 
         when:
-            new GaugeBuilder(name, help)
+            new GaugeBuilder(NAME, HELP)
                 .withLabels("label1", "label2")
                 .withValueSupplier(valueSupplier, "val1")
                 .register()

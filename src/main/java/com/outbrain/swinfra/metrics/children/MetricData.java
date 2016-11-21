@@ -1,4 +1,4 @@
-package com.outbrain.swinfra.metrics.repositories;
+package com.outbrain.swinfra.metrics.children;
 
 import com.codahale.metrics.Metric;
 

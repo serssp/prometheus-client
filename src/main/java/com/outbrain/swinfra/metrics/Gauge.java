@@ -2,10 +2,10 @@ package com.outbrain.swinfra.metrics;
 
 import com.codahale.metrics.CachedGauge;
 import com.outbrain.swinfra.metrics.MetricFamilySamples.Sample;
-import com.outbrain.swinfra.metrics.repositories.ChildMetricRepo;
-import com.outbrain.swinfra.metrics.repositories.LabeledChildrenRepo;
-import com.outbrain.swinfra.metrics.repositories.MetricData;
-import com.outbrain.swinfra.metrics.repositories.UnlabeledChildRepo;
+import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
+import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
+import com.outbrain.swinfra.metrics.children.MetricData;
+import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,7 +21,14 @@ import static com.outbrain.swinfra.metrics.LabelUtils.labelsToCommaDelimitedStri
 import static com.outbrain.swinfra.metrics.MetricType.GAUGE;
 import static java.util.Collections.singletonList;
 
-//todo document the relation between value suppliers and label values
+/**
+ * An implementation of a Gauge metric. A gauge is a decimal value that can increase or decrease.
+ * <p>
+ * The gauge exposes a single time-series with its value and labels.
+ * </p>
+ *
+ * @see <a href="https://prometheus.io/docs/concepts/metric_types/#gauge">Prometheus gauge metric</a>
+ */
 public class Gauge extends AbstractMetric<CachedGauge<Double>> {
 
   private final Map<String, MetricData<CachedGauge<Double>>> valueSuppliers;

@@ -1,8 +1,8 @@
 package com.outbrain.swinfra.metrics;
 
 import com.codahale.metrics.Metric;
-import com.outbrain.swinfra.metrics.repositories.ChildMetricRepo;
-import com.outbrain.swinfra.metrics.repositories.MetricData;
+import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
+import com.outbrain.swinfra.metrics.children.MetricData;
 
 import java.util.Arrays;
 import java.util.List;

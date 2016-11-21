@@ -9,14 +9,14 @@ import static java.util.Collections.emptyList
 
 class CounterTest extends Specification {
 
-    private final String name = "name"
-    private final String help = "help"
+    private static final String NAME = "NAME"
+    private static final String HELP = "HELP"
 
     def 'Counter should return zero after initialization'() {
         final long expectedValue = 0;
 
         when:
-            final Counter counter = new CounterBuilder(name, help).register();
+            final Counter counter = new CounterBuilder(NAME, HELP).register();
 
         then:
             counter.getValue() == expectedValue
@@ -26,7 +26,7 @@ class CounterTest extends Specification {
         final long expectedValue = 1;
 
         when:
-            final Counter counter = new CounterBuilder(name, help).register();
+            final Counter counter = new CounterBuilder(NAME, HELP).register();
             counter.inc();
 
         then:
@@ -37,7 +37,7 @@ class CounterTest extends Specification {
         final long expectedValue = 3;
 
         when:
-        final Counter counter = new CounterBuilder(name, help).register();
+        final Counter counter = new CounterBuilder(NAME, HELP).register();
             counter.inc();
             counter.inc();
             counter.inc();
@@ -50,7 +50,7 @@ class CounterTest extends Specification {
         final long expectedValue = 3;
 
         when:
-            final Counter counter = new CounterBuilder(name, help).register();
+            final Counter counter = new CounterBuilder(NAME, HELP).register();
             counter.inc(3);
 
         then:
@@ -64,7 +64,7 @@ class CounterTest extends Specification {
         final String[] labelValues = ["val1", "val2", "val3"]
 
         when:
-            final Counter counter = new CounterBuilder(name, help)
+            final Counter counter = new CounterBuilder(NAME, HELP)
                 .withLabels(labelNames)
                 .register();
             counter.inc(3, labelValues);
@@ -80,14 +80,14 @@ class CounterTest extends Specification {
         final String[] labelValues2 = ["val3", "val4"]
 
         given:
-            final List<Sample> samples1 = [Sample.from(name, Arrays.asList(labelNames), Arrays.asList(labelValues1), 5)]
-            final List<Sample> samples2 = [Sample.from(name, Arrays.asList(labelNames), Arrays.asList(labelValues2), 6)]
+            final List<Sample> samples1 = [Sample.from(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), 5)]
+            final List<Sample> samples2 = [Sample.from(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), 6)]
             final List<MetricFamilySamples> metricFamilySamples = [
-                MetricFamilySamples.from(name, COUNTER, help, samples1),
-                MetricFamilySamples.from(name, COUNTER, help, samples2)]
+                MetricFamilySamples.from(NAME, COUNTER, HELP, samples1),
+                MetricFamilySamples.from(NAME, COUNTER, HELP, samples2)]
 
         when:
-            final Counter counter = new CounterBuilder(name, help)
+            final Counter counter = new CounterBuilder(NAME, HELP)
                 .withLabels("label1", "label2")
                 .register()
 
@@ -100,15 +100,15 @@ class CounterTest extends Specification {
 
     def 'Counter should return the correct samples with subsystem defined'() {
         final String subsystem = "myNamespace"
-        final String fullName = subsystem + "_" + name
+        final String fullName = subsystem + "_" + NAME
 
         given:
             final List<Sample> samples = [Sample.from(fullName, emptyList(), emptyList(), 0)]
             final List<MetricFamilySamples> metricFamilySamples = [
-                MetricFamilySamples.from(fullName, COUNTER, help, samples)]
+                MetricFamilySamples.from(fullName, COUNTER, HELP, samples)]
 
         when:
-             final Counter counter = new CounterBuilder(name, help)
+             final Counter counter = new CounterBuilder(NAME, HELP)
                 .withSubsystem(subsystem)
                 .register()
 
@@ -119,15 +119,15 @@ class CounterTest extends Specification {
     def 'Counter should return the correct samples with namespace and subsystem defined'() {
         final String namespace = "myNamespace"
         final String subsystem = "mySubsystem"
-        final String fullName = namespace + "_" + subsystem + "_" + name
+        final String fullName = namespace + "_" + subsystem + "_" + NAME
 
         given:
             final List<Sample> samples = [Sample.from(fullName, emptyList(), emptyList(), 0)]
             final List<MetricFamilySamples> metricFamilySamples = [
-                MetricFamilySamples.from(fullName, COUNTER, help, samples)]
+                MetricFamilySamples.from(fullName, COUNTER, HELP, samples)]
 
         when:
-            final Counter counter = new CounterBuilder(name, help)
+            final Counter counter = new CounterBuilder(NAME, HELP)
                 .withNamespace(namespace)
                 .withSubsystem(subsystem)
                 .register()
@@ -138,15 +138,15 @@ class CounterTest extends Specification {
 
     def 'Counter should return the correct samples with namespace defined'() {
         final String namespace = "mySubsystem"
-        final String fullName = namespace + "_" + name
+        final String fullName = namespace + "_" + NAME
 
         given:
             final List<Sample> samples = [Sample.from(fullName, emptyList(), emptyList(), 0)]
             final List<MetricFamilySamples> metricFamilySamples = [
-                MetricFamilySamples.from(fullName, COUNTER, help, samples)]
+                MetricFamilySamples.from(fullName, COUNTER, HELP, samples)]
 
         when:
-        final Counter counter = new CounterBuilder(name, help)
+        final Counter counter = new CounterBuilder(NAME, HELP)
             .withNamespace(namespace)
             .register()
 

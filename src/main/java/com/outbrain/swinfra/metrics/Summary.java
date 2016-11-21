@@ -5,10 +5,10 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Snapshot;
 import com.google.common.collect.Lists;
 import com.outbrain.swinfra.metrics.MetricFamilySamples.Sample;
-import com.outbrain.swinfra.metrics.repositories.ChildMetricRepo;
-import com.outbrain.swinfra.metrics.repositories.LabeledChildrenRepo;
-import com.outbrain.swinfra.metrics.repositories.MetricData;
-import com.outbrain.swinfra.metrics.repositories.UnlabeledChildRepo;
+import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
+import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
+import com.outbrain.swinfra.metrics.children.MetricData;
+import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +16,29 @@ import java.util.List;
 import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
 import static com.outbrain.swinfra.metrics.MetricType.SUMMARY;
 
+/**
+ * An implementation of a Summary metric. A summary is a histogram that samples its measurements and has no predefined
+ * buckets. The summary calculates several quantiles over its observed measurements.
+ * <p>
+ *   The summary exposes several time series:
+ *   <ul>
+ *     <li>
+ *          Sum - the sum of all its measurements.
+ *          The name of this metric will consist of the original metric name with a '_sum' suffix
+ *     </li>
+ *     <li>
+ *          Count - the number of measurements taken.
+ *          The name of this metric will consist of the original metric name with a '_count' suffix
+ *     <li>
+ *          Quantiles - the 0.5, 0.75, 0.95, 0.98, 0.99 and 0.999 quantiles.
+ *          Each of these will have the same name as the original metric, but with a 'quantile' label added
+ *     </li>
+ *   </ul>
+ * </p>
+ *
+ * @see <a href="https://prometheus.io/docs/concepts/metric_types/#counter">Prometheus summary metric</a>
+ * @see <a href="https://prometheus.io/docs/practices/histograms/">Prometheus summary vs. histogram</a>
+ */
 public class Summary extends AbstractMetric<Histogram> {
 
   private static final String QUANTILE_LABEL = "quantile";
@@ -57,15 +80,24 @@ public class Summary extends AbstractMetric<Histogram> {
 
   private List<Sample> createQuantileSamples(final MetricData<Histogram> metricData) {
     final Snapshot snapshot = metricData.getMetric().getSnapshot();
+
     final List<String> labels = addToList(getLabelNames(), QUANTILE_LABEL);
     final List<String> labelValues = metricData.getLabelValues();
+
+    long sum = 0;
+    for (final long value : snapshot.getValues()) {
+      sum += value;
+    }
+
     return Lists.newArrayList(
       Sample.from(getName(), labels, addToList(labelValues, "0.5"), snapshot.getMedian()),
       Sample.from(getName(), labels, addToList(labelValues, "0.75"), snapshot.get75thPercentile()),
       Sample.from(getName(), labels, addToList(labelValues, "0.95"), snapshot.get95thPercentile()),
       Sample.from(getName(), labels, addToList(labelValues, "0.98"), snapshot.get98thPercentile()),
       Sample.from(getName(), labels, addToList(labelValues, "0.99"), snapshot.get99thPercentile()),
-      Sample.from(getName(), labels, addToList(labelValues, "0.999"), snapshot.get999thPercentile())
+      Sample.from(getName(), labels, addToList(labelValues, "0.999"), snapshot.get999thPercentile()),
+      Sample.from(getName() + "_count", getLabelNames(), labelValues, metricData.getMetric().getCount()),
+      Sample.from(getName() + "_sum", getLabelNames(), labelValues, sum)
     );
   }
 
