@@ -2,8 +2,10 @@ package com.outbrain.swinfra.metrics
 
 import spock.lang.Specification
 
-import static com.outbrain.swinfra.metrics.MetricFamilySamples.Sample
 import static com.outbrain.swinfra.metrics.Summary.SummaryBuilder
+import static io.prometheus.client.Collector.MetricFamilySamples
+import static io.prometheus.client.Collector.MetricFamilySamples.Sample
+import static io.prometheus.client.Collector.Type.SUMMARY
 import static java.util.Collections.emptyList
 import static java.util.Collections.singletonList
 
@@ -27,11 +29,11 @@ class SummaryTest extends Specification {
                 sampleForQuantile("0.98", 0),
                 sampleForQuantile("0.99", 0),
                 sampleForQuantile("0.999", 0),
-                Sample.from(COUNT_NAME, emptyList(), emptyList(), 0),
-                Sample.from(SUM_NAME, emptyList(), emptyList(), 0)
+                new Sample(COUNT_NAME, emptyList(), emptyList(), 0),
+                new Sample(SUM_NAME, emptyList(), emptyList(), 0)
             ]
             final List<MetricFamilySamples> metricFamilySamples = [
-                MetricFamilySamples.from(NAME, MetricType.SUMMARY, HELP, samples)
+                new MetricFamilySamples(NAME,SUMMARY , HELP, samples)
             ]
 
         when:
@@ -50,11 +52,11 @@ class SummaryTest extends Specification {
                 sampleForQuantile("0.98", 980),
                 sampleForQuantile("0.99", 990),
                 sampleForQuantile("0.999", 999),
-                Sample.from(COUNT_NAME, emptyList(), emptyList(), 1000),
-                Sample.from(SUM_NAME, emptyList(), emptyList(), SUM_1_TO_1000)
+                new Sample(COUNT_NAME, emptyList(), emptyList(), 1000),
+                new Sample(SUM_NAME, emptyList(), emptyList(), SUM_1_TO_1000)
             ]
         final List<MetricFamilySamples> metricFamilySamples = [
-            MetricFamilySamples.from(NAME, MetricType.SUMMARY, HELP, samples)
+            new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
         ]
 
         when:
@@ -78,8 +80,8 @@ class SummaryTest extends Specification {
                 sampleForQuantile("0.98", 980, labelNames, labelValues1),
                 sampleForQuantile("0.99", 990, labelNames, labelValues1),
                 sampleForQuantile("0.999", 999, labelNames, labelValues1),
-                Sample.from(COUNT_NAME, labelNames, labelValues1, 1000),
-                Sample.from(SUM_NAME, labelNames, labelValues1, SUM_1_TO_1000)
+                new Sample(COUNT_NAME, labelNames, labelValues1, 1000),
+                new Sample(SUM_NAME, labelNames, labelValues1, SUM_1_TO_1000)
             ]
             final List<Sample> samples2 = [
                 sampleForQuantile("0.5", 500, labelNames, labelValues2),
@@ -88,14 +90,14 @@ class SummaryTest extends Specification {
                 sampleForQuantile("0.98", 980, labelNames, labelValues2),
                 sampleForQuantile("0.99", 990, labelNames, labelValues2),
                 sampleForQuantile("0.999", 999, labelNames, labelValues2),
-                Sample.from(COUNT_NAME, labelNames, labelValues2, 1000),
-                Sample.from(SUM_NAME, labelNames, labelValues2, SUM_1_TO_1000)
+                new Sample(COUNT_NAME, labelNames, labelValues2, 1000),
+                new Sample(SUM_NAME, labelNames, labelValues2, SUM_1_TO_1000)
             ]
 
             final List<MetricFamilySamples> metricFamilySamples = [
-                MetricFamilySamples.from(NAME, MetricType.SUMMARY, HELP, samples1),
-                MetricFamilySamples.from(NAME, MetricType.SUMMARY, HELP, samples2)
-            ]
+                new MetricFamilySamples(NAME, SUMMARY, HELP, samples1),
+                new MetricFamilySamples(NAME, SUMMARY, HELP, samples2)
+            ] as List<MetricFamilySamples>
 
         when:
             final Summary summary = new SummaryBuilder(NAME, HELP)
@@ -109,7 +111,7 @@ class SummaryTest extends Specification {
     }
 
     private static Sample sampleForQuantile(final String quantile, final double value) {
-        return Sample.from(NAME, QUANTILE_LABEL, [quantile], value)
+        return new Sample(NAME, QUANTILE_LABEL, [quantile], value)
     }
 
     private static Sample sampleForQuantile(final String quantile,
@@ -118,6 +120,6 @@ class SummaryTest extends Specification {
                                             final List<String> labelValues) {
         final List<String> labels = labelNames + QUANTILE_LABEL
         final List<String> values = labelValues + quantile
-        return Sample.from(NAME, labels, values, value)
+        return new Sample(NAME, labels, values, value)
     }
 }

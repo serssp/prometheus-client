@@ -8,26 +8,26 @@ import java.util.concurrent.ConcurrentMap;
 
 import static java.util.Objects.requireNonNull;
 
-public class MetricRegistry {
+class MetricRegistry {
 
   static final MetricRegistry DEFAULT_REGISTRY = new MetricRegistry();
 
-  private final ConcurrentMap<String, AbstractMetric> allMetrics = new ConcurrentHashMap<>(100);
-  private final Map<String, AbstractMetric> allMetricsView = Collections.unmodifiableMap(allMetrics);
+  private final ConcurrentMap<String, AbstractMetric<?>> allMetrics = new ConcurrentHashMap<>(100);
+  private final Map<String, AbstractMetric<?>> allMetricsView = Collections.unmodifiableMap(allMetrics);
 
   /**
    * Registers a metric in this registry
    *
    * @throws IllegalArgumentException if a metric with the same name was already registered
    */
-  void register(final AbstractMetric metric) {
+  void register(final AbstractMetric<?> metric) {
     requireNonNull(metric, "metric may not be null");
     if (allMetrics.putIfAbsent(metric.getName(), metric) != null) {
       throw new IllegalArgumentException("A metric with this name was already registered: " + metric.getName());
     }
   }
 
-  Collection<AbstractMetric> all() {
+  Collection<AbstractMetric<?>> all() {
     return allMetricsView.values();
   }
 

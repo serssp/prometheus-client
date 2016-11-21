@@ -1,16 +1,18 @@
 package com.outbrain.swinfra.metrics;
 
 
-import com.outbrain.swinfra.metrics.MetricFamilySamples.Sample;
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
+import io.prometheus.client.Collector;
+import io.prometheus.client.Collector.MetricFamilySamples;
+import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
 import java.util.List;
 
 import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
-import static com.outbrain.swinfra.metrics.MetricType.COUNTER;
+import static io.prometheus.client.Collector.Type.COUNTER;
 import static java.util.Collections.singletonList;
 
 /**
@@ -54,15 +56,15 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
   }
 
   @Override
-  MetricType getType() {
+  Collector.Type getType() {
     return COUNTER;
   }
 
   @Override
   MetricFamilySamples toMetricFamilySamples(final MetricData<com.codahale.metrics.Counter> metricData) {
     final List<Sample> samples = singletonList(
-        Sample.from(getName(), getLabelNames(), metricData.getLabelValues(), metricData.getMetric().getCount()));
-    return MetricFamilySamples.from(getName(), COUNTER, getHelp(), samples);
+        new Sample(getName(), getLabelNames(), metricData.getLabelValues(), metricData.getMetric().getCount()));
+    return new MetricFamilySamples(getName(), COUNTER, getHelp(), samples);
   }
 
   public static class CounterBuilder extends AbstractMetricBuilder<Counter, CounterBuilder> {

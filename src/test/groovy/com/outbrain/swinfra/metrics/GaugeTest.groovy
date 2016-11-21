@@ -5,8 +5,9 @@ import spock.lang.Specification
 import java.util.function.DoubleSupplier
 
 import static com.outbrain.swinfra.metrics.Gauge.GaugeBuilder
-import static com.outbrain.swinfra.metrics.MetricFamilySamples.Sample
-import static com.outbrain.swinfra.metrics.MetricType.GAUGE
+import static io.prometheus.client.Collector.MetricFamilySamples
+import static io.prometheus.client.Collector.MetricFamilySamples.Sample
+import static io.prometheus.client.Collector.Type.GAUGE
 
 class GaugeTest extends Specification {
 
@@ -19,8 +20,8 @@ class GaugeTest extends Specification {
         final double expectedValue = 239487234
 
         given:
-            final List<Sample> samples = [Sample.from(NAME, [], [], expectedValue)]
-            final List<MetricFamilySamples> metricFamilySamples = [MetricFamilySamples.from(NAME, GAUGE, HELP, samples)]
+            final List<Sample> samples = [new Sample(NAME, [], [], expectedValue)]
+            final List<MetricFamilySamples> metricFamilySamples = [new MetricFamilySamples(NAME, GAUGE, HELP, samples)]
 
             final DoubleSupplier supplier = new DoubleSupplier() {
                 @Override
@@ -59,9 +60,9 @@ class GaugeTest extends Specification {
         }
 
         given:
-            final List<Sample> samples1 = [Sample.from(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), expectedValue1)]
-            final List<Sample> samples2 = [Sample.from(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), expectedValue2)]
-            final List<MetricFamilySamples> metricFamilySamples = [MetricFamilySamples.from(NAME, GAUGE, HELP, samples1), MetricFamilySamples.from(NAME, GAUGE, HELP, samples2)]
+            final List<Sample> samples1 = [new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), expectedValue1)]
+            final List<Sample> samples2 = [new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), expectedValue2)]
+            final List<MetricFamilySamples> metricFamilySamples = [new MetricFamilySamples(NAME, GAUGE, HELP, samples1), new MetricFamilySamples(NAME, GAUGE, HELP, samples2)]
 
         when:
             final Gauge gauge = new GaugeBuilder(NAME, HELP)

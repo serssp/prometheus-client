@@ -1,11 +1,13 @@
 package com.outbrain.swinfra.metrics;
 
 import com.codahale.metrics.CachedGauge;
-import com.outbrain.swinfra.metrics.MetricFamilySamples.Sample;
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
+import io.prometheus.client.Collector;
+import io.prometheus.client.Collector.MetricFamilySamples;
+import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,7 +19,7 @@ import java.util.function.DoubleSupplier;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
 import static com.outbrain.swinfra.metrics.LabelUtils.labelsToCommaDelimitedString;
-import static com.outbrain.swinfra.metrics.MetricType.GAUGE;
+import static io.prometheus.client.Collector.Type.GAUGE;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 
@@ -53,8 +55,8 @@ public class Gauge extends AbstractMetric<CachedGauge<Double>> {
   @Override
   MetricFamilySamples toMetricFamilySamples(final MetricData<CachedGauge<Double>> metricData) {
     final List<Sample> samples = singletonList(
-        Sample.from(getName(), getLabelNames(), metricData.getLabelValues(), metricData.getMetric().getValue()));
-    return MetricFamilySamples.from(getName(), getType(), getHelp(), samples);
+        new Sample(getName(), getLabelNames(), metricData.getLabelValues(), metricData.getMetric().getValue()));
+    return new MetricFamilySamples(getName(), getType(), getHelp(), samples);
   }
 
   @Override
@@ -88,7 +90,7 @@ public class Gauge extends AbstractMetric<CachedGauge<Double>> {
   }
 
   @Override
-  MetricType getType() {
+  Collector.Type getType() {
     return GAUGE;
   }
 

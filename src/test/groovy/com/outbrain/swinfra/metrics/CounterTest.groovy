@@ -3,8 +3,9 @@ package com.outbrain.swinfra.metrics
 import spock.lang.Specification
 
 import static com.outbrain.swinfra.metrics.Counter.CounterBuilder
-import static com.outbrain.swinfra.metrics.MetricType.COUNTER
-import static com.outbrain.swinfra.metrics.MetricFamilySamples.Sample
+import static io.prometheus.client.Collector.MetricFamilySamples
+import static io.prometheus.client.Collector.MetricFamilySamples.Sample
+import static io.prometheus.client.Collector.Type.COUNTER
 import static java.util.Collections.emptyList
 
 class CounterTest extends Specification {
@@ -82,11 +83,11 @@ class CounterTest extends Specification {
         final String[] labelValues2 = ["val3", "val4"]
 
         given:
-            final List<Sample> samples1 = [Sample.from(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), 5)]
-            final List<Sample> samples2 = [Sample.from(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), 6)]
+            final List<Sample> samples1 = [new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), 5)]
+            final List<Sample> samples2 = [new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), 6)]
             final List<MetricFamilySamples> metricFamilySamples = [
-                MetricFamilySamples.from(NAME, COUNTER, HELP, samples1),
-                MetricFamilySamples.from(NAME, COUNTER, HELP, samples2)]
+                new MetricFamilySamples(NAME, COUNTER, HELP, samples1),
+                new MetricFamilySamples(NAME, COUNTER, HELP, samples2)]
 
         when:
             final Counter counter = new CounterBuilder(NAME, HELP)
@@ -105,9 +106,9 @@ class CounterTest extends Specification {
         final String fullName = subsystem + "_" + NAME
 
         given:
-            final List<Sample> samples = [Sample.from(fullName, emptyList(), emptyList(), 0)]
+            final List<Sample> samples = [new Sample(fullName, emptyList(), emptyList(), 0)]
             final List<MetricFamilySamples> metricFamilySamples = [
-                MetricFamilySamples.from(fullName, COUNTER, HELP, samples)]
+                new MetricFamilySamples(fullName, COUNTER, HELP, samples)]
 
         when:
              final Counter counter = new CounterBuilder(NAME, HELP)
@@ -124,9 +125,9 @@ class CounterTest extends Specification {
         final String fullName = namespace + "_" + subsystem + "_" + NAME
 
         given:
-            final List<Sample> samples = [Sample.from(fullName, emptyList(), emptyList(), 0)]
+            final List<Sample> samples = [new Sample(fullName, emptyList(), emptyList(), 0)]
             final List<MetricFamilySamples> metricFamilySamples = [
-                MetricFamilySamples.from(fullName, COUNTER, HELP, samples)]
+                new MetricFamilySamples(fullName, COUNTER, HELP, samples)]
 
         when:
             final Counter counter = new CounterBuilder(NAME, HELP)
@@ -143,9 +144,9 @@ class CounterTest extends Specification {
         final String fullName = namespace + "_" + NAME
 
         given:
-            final List<Sample> samples = [Sample.from(fullName, emptyList(), emptyList(), 0)]
+            final List<Sample> samples = [new Sample(fullName, emptyList(), emptyList(), 0)]
             final List<MetricFamilySamples> metricFamilySamples = [
-                MetricFamilySamples.from(fullName, COUNTER, HELP, samples)]
+                new MetricFamilySamples(fullName, COUNTER, HELP, samples)]
 
         when:
         final Counter counter = new CounterBuilder(NAME, HELP)

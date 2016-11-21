@@ -4,17 +4,19 @@ import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Snapshot;
 import com.google.common.collect.Lists;
-import com.outbrain.swinfra.metrics.MetricFamilySamples.Sample;
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
+import io.prometheus.client.Collector;
+import io.prometheus.client.Collector.MetricFamilySamples;
+import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
-import static com.outbrain.swinfra.metrics.MetricType.SUMMARY;
+import static io.prometheus.client.Collector.Type.SUMMARY;
 
 /**
  * An implementation of a Summary metric. A summary is a histogram that samples its measurements and has no predefined
@@ -68,14 +70,14 @@ public class Summary extends AbstractMetric<Histogram> {
   }
 
   @Override
-  MetricType getType() {
+  Collector.Type getType() {
     return SUMMARY;
   }
 
   @Override
   MetricFamilySamples toMetricFamilySamples(final MetricData<Histogram> metricData) {
     final List<Sample> samples = createQuantileSamples(metricData);
-    return MetricFamilySamples.from(getName(), SUMMARY, getHelp(), samples);
+    return new MetricFamilySamples(getName(), SUMMARY, getHelp(), samples);
   }
 
   private List<Sample> createQuantileSamples(final MetricData<Histogram> metricData) {
@@ -90,14 +92,14 @@ public class Summary extends AbstractMetric<Histogram> {
     }
 
     return Lists.newArrayList(
-      Sample.from(getName(), labels, addToList(labelValues, "0.5"), snapshot.getMedian()),
-      Sample.from(getName(), labels, addToList(labelValues, "0.75"), snapshot.get75thPercentile()),
-      Sample.from(getName(), labels, addToList(labelValues, "0.95"), snapshot.get95thPercentile()),
-      Sample.from(getName(), labels, addToList(labelValues, "0.98"), snapshot.get98thPercentile()),
-      Sample.from(getName(), labels, addToList(labelValues, "0.99"), snapshot.get99thPercentile()),
-      Sample.from(getName(), labels, addToList(labelValues, "0.999"), snapshot.get999thPercentile()),
-      Sample.from(getName() + "_count", getLabelNames(), labelValues, metricData.getMetric().getCount()),
-      Sample.from(getName() + "_sum", getLabelNames(), labelValues, sum)
+      new Sample(getName(), labels, addToList(labelValues, "0.5"), snapshot.getMedian()),
+      new Sample(getName(), labels, addToList(labelValues, "0.75"), snapshot.get75thPercentile()),
+      new Sample(getName(), labels, addToList(labelValues, "0.95"), snapshot.get95thPercentile()),
+      new Sample(getName(), labels, addToList(labelValues, "0.98"), snapshot.get98thPercentile()),
+      new Sample(getName(), labels, addToList(labelValues, "0.99"), snapshot.get99thPercentile()),
+      new Sample(getName(), labels, addToList(labelValues, "0.999"), snapshot.get999thPercentile()),
+      new Sample(getName() + "_count", getLabelNames(), labelValues, metricData.getMetric().getCount()),
+      new Sample(getName() + "_sum", getLabelNames(), labelValues, sum)
     );
   }
 

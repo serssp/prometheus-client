@@ -3,6 +3,8 @@ package com.outbrain.swinfra.metrics;
 import com.codahale.metrics.Metric;
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
+import io.prometheus.client.Collector;
+import io.prometheus.client.Collector.MetricFamilySamples;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +30,7 @@ abstract class AbstractMetric<T extends Metric> {
 
   abstract ChildMetricRepo<T> createChildMetricRepo();
 
-  abstract MetricType getType();
+  abstract Collector.Type getType();
 
   abstract MetricFamilySamples toMetricFamilySamples(final MetricData<T> metricData);
 
@@ -49,8 +51,10 @@ abstract class AbstractMetric<T extends Metric> {
   }
 
   void validateLabelValues(final String... labelValues) {
-    if (labelNames.size() > 0)
+    if (labelNames.size() > 0) {
       checkArgument(labelNames.size() == labelValues.length, "A label value must be supplied for each label name");
+    }
+
     for (final String labelName : labelNames) {
       checkArgument(isNotBlank(labelName), "Label names must contain text");
     }
