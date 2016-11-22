@@ -69,7 +69,7 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
 
   public static class CounterBuilder extends AbstractMetricBuilder<Counter, CounterBuilder> {
 
-    CounterBuilder(final String name, final String help) {
+    public CounterBuilder(final String name, final String help) {
       super(name, help);
     }
 

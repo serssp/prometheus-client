@@ -111,7 +111,7 @@ public class Summary extends AbstractMetric<Histogram> {
 
   public static class SummaryBuilder extends AbstractMetricBuilder<Summary, SummaryBuilder> {
 
-    SummaryBuilder(final String name, final String help) {
+    public SummaryBuilder(final String name, final String help) {
       super(name, help);
     }
 
