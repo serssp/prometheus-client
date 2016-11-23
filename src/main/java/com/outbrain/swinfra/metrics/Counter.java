@@ -64,7 +64,7 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
   MetricFamilySamples toMetricFamilySamples(final MetricData<com.codahale.metrics.Counter> metricData) {
     final List<Sample> samples = singletonList(
         new Sample(getName(), getLabelNames(), metricData.getLabelValues(), metricData.getMetric().getCount()));
-    return new MetricFamilySamples(getName(), COUNTER, getHelp(), samples);
+    return new MetricFamilySamples(getName(), getType(), getHelp(), samples);
   }
 
   public static class CounterBuilder extends AbstractMetricBuilder<Counter, CounterBuilder> {
