@@ -10,7 +10,7 @@ import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class AbstractMetricWithQuantiles<T extends Metric> extends AbstractMetric<T> {
+abstract class AbstractMetricWithQuantiles<T extends Counting & Sampling & Metric> extends AbstractMetric<T> {
 
   private static final String QUANTILE_LABEL = "quantile";
 
@@ -18,8 +18,7 @@ abstract class AbstractMetricWithQuantiles<T extends Metric> extends AbstractMet
     super(name, help, labelNames);
   }
 
-  <M extends Counting & Sampling> List<Sample> createSamplesFromSnapshot(final M metric,
-                                                                         final List<String> labelValues) {
+  List<Sample> createSamplesFromSnapshot(final T metric, final List<String> labelValues) {
     final Snapshot snapshot = metric.getSnapshot();
 
     final List<String> labels = addToList(getLabelNames(), QUANTILE_LABEL);
