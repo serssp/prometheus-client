@@ -34,7 +34,7 @@ public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends 
 
   protected abstract T create(final String fullName, final String help, final String[] labelNames);
 
-  T register() {
+  public T register() {
     return this.register(DEFAULT_REGISTRY);
   }
 
