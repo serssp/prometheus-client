@@ -1,20 +1,22 @@
 package com.outbrain.swinfra.metrics;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.outbrain.swinfra.metrics.MetricRegistry.DEFAULT_REGISTRY;
 import static com.outbrain.swinfra.metrics.StringUtils.isNotBlank;
 
 public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends AbstractMetricBuilder<T, B>> {
 
-  private String namespace = "";
-  private String subsystem = "";
   private final String name;
   private final String help;
+  private final MetricRegistry metricRegistry;
+
+  private String namespace = "";
+  private String subsystem = "";
   String[] labelNames = new String[] {};
 
-  AbstractMetricBuilder(final String name, final String help) {
+  AbstractMetricBuilder(final String name, final String help, final MetricRegistry metricRegistry) {
     this.name = name;
     this.help = help;
+    this.metricRegistry = metricRegistry;
   }
 
   public B withSubsystem(final String subsystem) {
@@ -34,12 +36,8 @@ public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends 
 
   protected abstract T create(final String fullName, final String help, final String[] labelNames);
 
-  public T register() {
-    return this.register(DEFAULT_REGISTRY);
-  }
-
   //Handle cases where a metric is created but it already exists
-  public T register(final MetricRegistry metricRegistry) {
+  public T register() {
     validateParams();
     final T metric = create(createFullName(), help, labelNames);
     metric.initChildMetricRepo();

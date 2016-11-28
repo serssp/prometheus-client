@@ -10,7 +10,7 @@ class BuilderTest extends Specification {
 
     def 'CounterBuilder should throw an exception on null name'() {
         when:
-            new Counter.CounterBuilder(null, "some help").register()
+            new Counter.CounterBuilder(null, "some help", new MetricRegistry()).register()
         then:
             final IllegalArgumentException ex = thrown()
             ex.message.contains("name")
@@ -18,7 +18,7 @@ class BuilderTest extends Specification {
 
     def 'CounterBuilder should throw an exception on empty name'() {
         when:
-        new Counter.CounterBuilder("     ", "some help").register()
+        new Counter.CounterBuilder("     ", "some help", new MetricRegistry()).register()
         then:
         final IllegalArgumentException ex = thrown()
         ex.message.contains("name")
@@ -26,7 +26,7 @@ class BuilderTest extends Specification {
 
     def 'CounterBuilder should throw an exception on null help message'() {
         when:
-        new Counter.CounterBuilder("some name", null).register()
+        new Counter.CounterBuilder("some name", null, new MetricRegistry()).register()
         then:
         final IllegalArgumentException ex = thrown()
         ex.message.contains("help")
@@ -34,7 +34,7 @@ class BuilderTest extends Specification {
 
     def 'CounterBuilder should throw an exception on empty help message'() {
         when:
-        new Counter.CounterBuilder("some name", "      ").register()
+        new Counter.CounterBuilder("some name", "      ", new MetricRegistry()).register()
         then:
         final IllegalArgumentException ex = thrown()
         ex.message.contains("help")
@@ -42,7 +42,7 @@ class BuilderTest extends Specification {
 
     def 'CounterBuilder should throw an exception on null label'() {
         when:
-        new Counter.CounterBuilder("some name", "some help").withLabels("label", null).register()
+        new Counter.CounterBuilder("some name", "some help", new MetricRegistry()).withLabels("label", null).register()
         then:
         final IllegalArgumentException ex = thrown()
         ex.message.contains("Label")
@@ -50,7 +50,7 @@ class BuilderTest extends Specification {
 
     def 'CounterBuilder should throw an exception on empty label'() {
         when:
-        new Counter.CounterBuilder("some name", "some help").withLabels("label", "    ").register()
+        new Counter.CounterBuilder("some name", "some help", new MetricRegistry()).withLabels("label", "    ").register()
         then:
         final IllegalArgumentException ex = thrown()
         ex.message.contains("Label")

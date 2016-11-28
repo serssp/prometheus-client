@@ -16,7 +16,7 @@ import static io.prometheus.client.Collector.Type.SUMMARY;
  */
 public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Timer> {
 
-  private Timer(final String name, final String help, final String[] labelNames) {
+  Timer(final String name, final String help, final String[] labelNames) {
     super(name, help, labelNames);
   }
 
@@ -59,8 +59,8 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
 
   public static class TimerBuilder extends AbstractMetricBuilder<Timer, TimerBuilder> {
 
-    public TimerBuilder(final String name, final String help) {
-      super(name, help);
+    public TimerBuilder(final String name, final String help, final MetricRegistry metricRegistry) {
+      super(name, help, metricRegistry);
     }
 
     protected Timer create(final String fullName, final String help, final String[] labelNames) {

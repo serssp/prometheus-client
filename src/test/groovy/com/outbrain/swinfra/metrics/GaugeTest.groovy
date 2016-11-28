@@ -30,9 +30,9 @@ class GaugeTest extends Specification {
                 }
             }
         when:
-            final Gauge gauge = new GaugeBuilder(NAME, HELP)
+            final Gauge gauge = new GaugeBuilder(NAME, HELP, metricRegistry)
                 .withValueSupplier(supplier)
-                .register(metricRegistry)
+                .register()
 
         then:
             gauge.getSamples() == metricFamilySamples;
@@ -65,11 +65,11 @@ class GaugeTest extends Specification {
             final List<MetricFamilySamples> metricFamilySamples = [new MetricFamilySamples(NAME, GAUGE, HELP, samples1), new MetricFamilySamples(NAME, GAUGE, HELP, samples2)]
 
         when:
-            final Gauge gauge = new GaugeBuilder(NAME, HELP)
+            final Gauge gauge = new GaugeBuilder(NAME, HELP, metricRegistry)
             .withLabels(labelNames)
             .withValueSupplier(supplier1, labelValues1)
             .withValueSupplier(supplier2, labelValues2)
-            .register(metricRegistry)
+            .register()
 
 
         then:
@@ -78,9 +78,9 @@ class GaugeTest extends Specification {
 
     def 'GaugeBuilder should throw an exception on null value supplier'() {
         when:
-            new GaugeBuilder(NAME, HELP)
+            new GaugeBuilder(NAME, HELP, metricRegistry)
                 .withValueSupplier(null, "val1", "val2")
-                .register(metricRegistry)
+                .register()
 
         then:
             final NullPointerException ex = thrown()
@@ -96,10 +96,10 @@ class GaugeTest extends Specification {
         }
 
         when:
-            new GaugeBuilder(NAME, HELP)
+            new GaugeBuilder(NAME, HELP, metricRegistry)
                 .withLabels("label1", "label2")
                 .withValueSupplier(valueSupplier, "val1", "val2", "extraVal")
-                .register(metricRegistry)
+                .register()
 
         then:
             final IllegalArgumentException ex = thrown()
@@ -115,10 +115,10 @@ class GaugeTest extends Specification {
         }
 
         when:
-            new GaugeBuilder(NAME, HELP)
+            new GaugeBuilder(NAME, HELP, metricRegistry)
                 .withLabels("label1", "label2")
                 .withValueSupplier(valueSupplier, "val1")
-                .register(metricRegistry)
+                .register()
 
         then:
             final IllegalArgumentException ex = thrown()

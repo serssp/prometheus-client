@@ -38,8 +38,8 @@ class MetricCollectorTest extends Specification {
     private static MetricCollector createMetricCollector() {
         final MetricRegistry metricRegistry = new MetricRegistry()
 
-        new Counter.CounterBuilder("Counter1", "help").register(metricRegistry)
-        new Counter.CounterBuilder("Counter2", "help").register(metricRegistry)
+        new Counter.CounterBuilder("Counter1", "help", metricRegistry).register()
+        new Counter.CounterBuilder("Counter2", "help", metricRegistry).register()
 
         return new MetricCollector(metricRegistry)
     }
