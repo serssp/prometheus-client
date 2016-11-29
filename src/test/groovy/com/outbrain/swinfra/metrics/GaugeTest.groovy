@@ -22,16 +22,9 @@ class GaugeTest extends Specification {
         given:
             final List<Sample> samples = [new Sample(NAME, [], [], expectedValue)]
             final List<MetricFamilySamples> metricFamilySamples = [new MetricFamilySamples(NAME, GAUGE, HELP, samples)]
-
-            final DoubleSupplier supplier = new DoubleSupplier() {
-                @Override
-                double getAsDouble() {
-                    return expectedValue
-                }
-            }
         when:
             final Gauge gauge = new GaugeBuilder(NAME, HELP)
-                .withValueSupplier(supplier)
+                .withValueSupplier({ expectedValue } as DoubleSupplier)
                 .build()
 
         then:
@@ -40,25 +33,10 @@ class GaugeTest extends Specification {
 
     def 'Gauge should return the correct samples with labels'() {
         final String[] labelNames = ["label1", "label2"]
-
         final String[] labelValues1 = ["val1", "val2"]
         final double expectedValue1 = 239487
-        final DoubleSupplier supplier1 = new DoubleSupplier() {
-            @Override
-            double getAsDouble() {
-                return expectedValue1;
-            }
-        }
-
         final String[] labelValues2 = ["val2", "val3"]
         final double expectedValue2 = 181239813
-        final DoubleSupplier supplier2 = new DoubleSupplier() {
-            @Override
-            double getAsDouble() {
-                return expectedValue2;
-            }
-        }
-
         given:
             final List<Sample> samples1 = [new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), expectedValue1)]
             final List<Sample> samples2 = [new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), expectedValue2)]
@@ -67,8 +45,8 @@ class GaugeTest extends Specification {
         when:
             final Gauge gauge = new GaugeBuilder(NAME, HELP)
             .withLabels(labelNames)
-            .withValueSupplier(supplier1, labelValues1)
-            .withValueSupplier(supplier2, labelValues2)
+            .withValueSupplier({ expectedValue1 } as DoubleSupplier, labelValues1)
+            .withValueSupplier({ expectedValue2 } as DoubleSupplier, labelValues2)
             .build()
 
 
@@ -88,17 +66,10 @@ class GaugeTest extends Specification {
     }
 
     def 'GaugeBuilder should throw an exception on invalid length label values'() {
-        final DoubleSupplier valueSupplier = new DoubleSupplier() {
-            @Override
-            double getAsDouble() {
-                return 0;
-            }
-        }
-
         when:
             new GaugeBuilder(NAME, HELP)
                 .withLabels("label1", "label2")
-                .withValueSupplier(valueSupplier, "val1", "val2", "extraVal")
+                .withValueSupplier({ 0 } as DoubleSupplier, "val1", "val2", "extraVal")
                 .build()
 
         then:
@@ -107,17 +78,10 @@ class GaugeTest extends Specification {
     }
 
     def 'GaugeBuilder should throw an exception when not all labels are given values'() {
-        final DoubleSupplier valueSupplier = new DoubleSupplier() {
-            @Override
-            double getAsDouble() {
-                return 0;
-            }
-        }
-
         when:
             new GaugeBuilder(NAME, HELP)
                 .withLabels("label1", "label2")
-                .withValueSupplier(valueSupplier, "val1")
+                .withValueSupplier({ 0 } as DoubleSupplier, "val1")
                 .build()
 
         then:
