@@ -13,13 +13,11 @@ class CounterTest extends Specification {
     private static final String NAME = "NAME"
     private static final String HELP = "HELP"
 
-    final MetricRegistry metricRegistry = new MetricRegistry();
-
     def 'Counter should return zero after initialization'() {
         final long expectedValue = 0;
 
         when:
-            final Counter counter = new CounterBuilder(NAME, HELP, metricRegistry).register();
+            final Counter counter = new CounterBuilder(NAME, HELP).build();
 
         then:
             counter.getValue() == expectedValue
@@ -29,7 +27,7 @@ class CounterTest extends Specification {
         final long expectedValue = 1;
 
         when:
-            final Counter counter = new CounterBuilder(NAME, HELP, metricRegistry).register();
+            final Counter counter = new CounterBuilder(NAME, HELP).build();
             counter.inc();
 
         then:
@@ -40,7 +38,7 @@ class CounterTest extends Specification {
         final long expectedValue = 3;
 
         when:
-        final Counter counter = new CounterBuilder(NAME, HELP, metricRegistry).register();
+        final Counter counter = new CounterBuilder(NAME, HELP).build();
             counter.inc();
             counter.inc();
             counter.inc();
@@ -53,7 +51,7 @@ class CounterTest extends Specification {
         final long expectedValue = 3;
 
         when:
-            final Counter counter = new CounterBuilder(NAME, HELP, metricRegistry).register();
+            final Counter counter = new CounterBuilder(NAME, HELP).build();
             counter.inc(3);
 
         then:
@@ -67,9 +65,9 @@ class CounterTest extends Specification {
         final String[] labelValues = ["val1", "val2", "val3"]
 
         when:
-            final Counter counter = new CounterBuilder(NAME, HELP, metricRegistry)
+            final Counter counter = new CounterBuilder(NAME, HELP)
                 .withLabels(labelNames)
-                .register();
+                .build();
             counter.inc(3, labelValues);
             counter.inc(3, labelValues);
 
@@ -90,9 +88,9 @@ class CounterTest extends Specification {
                 new MetricFamilySamples(NAME, COUNTER, HELP, samples2)]
 
         when:
-            final Counter counter = new CounterBuilder(NAME, HELP, metricRegistry)
+            final Counter counter = new CounterBuilder(NAME, HELP)
                 .withLabels("label1", "label2")
-                .register()
+                .build()
 
             counter.inc(5, labelValues1)
             counter.inc(6, labelValues2)
@@ -111,9 +109,9 @@ class CounterTest extends Specification {
                 new MetricFamilySamples(fullName, COUNTER, HELP, samples)]
 
         when:
-             final Counter counter = new CounterBuilder(NAME, HELP, metricRegistry)
+             final Counter counter = new CounterBuilder(NAME, HELP)
                 .withSubsystem(subsystem)
-                .register()
+                .build()
 
         then:
             counter.getSamples().sort() == metricFamilySamples.sort()
@@ -130,10 +128,10 @@ class CounterTest extends Specification {
                 new MetricFamilySamples(fullName, COUNTER, HELP, samples)]
 
         when:
-            final Counter counter = new CounterBuilder(NAME, HELP, metricRegistry)
+            final Counter counter = new CounterBuilder(NAME, HELP)
                 .withNamespace(namespace)
                 .withSubsystem(subsystem)
-                .register()
+                .build()
 
         then:
             counter.getSamples().sort() == metricFamilySamples.sort()
@@ -149,9 +147,9 @@ class CounterTest extends Specification {
                 new MetricFamilySamples(fullName, COUNTER, HELP, samples)]
 
         when:
-        final Counter counter = new CounterBuilder(NAME, HELP, metricRegistry)
+        final Counter counter = new CounterBuilder(NAME, HELP)
             .withNamespace(namespace)
-            .register()
+            .build()
 
         then:
         counter.getSamples().sort() == metricFamilySamples.sort()

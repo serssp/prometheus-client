@@ -37,7 +37,7 @@ class SummaryTest extends Specification {
             ]
 
         when:
-            final Summary summary = new SummaryBuilder(NAME, HELP, metricRegistry).register();
+            final Summary summary = new SummaryBuilder(NAME, HELP).build();
 
         then:
             summary.getSamples().sort() == metricFamilySamples.sort()
@@ -60,7 +60,7 @@ class SummaryTest extends Specification {
         ]
 
         when:
-            final Summary summary = new SummaryBuilder(NAME, HELP, metricRegistry).register();
+            final Summary summary = new SummaryBuilder(NAME, HELP).build();
             1.upto(1000, {summary.observe(it)})
 
         then:
@@ -100,9 +100,9 @@ class SummaryTest extends Specification {
             ] as List<MetricFamilySamples>
 
         when:
-            final Summary summary = new SummaryBuilder(NAME, HELP, metricRegistry)
+            final Summary summary = new SummaryBuilder(NAME, HELP)
                 .withLabels(labelNames as String[])
-                .register();
+                .build();
             1.upto(1000, {summary.observe(it, labelValues1 as String[])})
             1.upto(1000, {summary.observe(it, labelValues2 as String[])})
 

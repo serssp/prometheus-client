@@ -7,16 +7,14 @@ public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends 
 
   private final String name;
   private final String help;
-  private final MetricRegistry metricRegistry;
 
   private String namespace = "";
   private String subsystem = "";
   String[] labelNames = new String[] {};
 
-  AbstractMetricBuilder(final String name, final String help, final MetricRegistry metricRegistry) {
+  AbstractMetricBuilder(final String name, final String help) {
     this.name = name;
     this.help = help;
-    this.metricRegistry = metricRegistry;
   }
 
   public B withSubsystem(final String subsystem) {
@@ -37,11 +35,10 @@ public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends 
   protected abstract T create(final String fullName, final String help, final String[] labelNames);
 
   //Handle cases where a metric is created but it already exists
-  public T register() {
+  public T build() {
     validateParams();
     final T metric = create(createFullName(), help, labelNames);
     metric.initChildMetricRepo();
-    metricRegistry.register(metric);
     return metric;
   }
 

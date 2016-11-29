@@ -98,8 +98,8 @@ public class Gauge extends AbstractMetric<CachedGauge<Double>> {
 
     private final Map<String[], DoubleSupplier> valueSuppliers = new HashMap<>();
 
-    public GaugeBuilder(final String name, final String help, final MetricRegistry metricRegistry) {
-      super(name, help, metricRegistry);
+    public GaugeBuilder(final String name, final String help) {
+      super(name, help);
     }
 
     /**

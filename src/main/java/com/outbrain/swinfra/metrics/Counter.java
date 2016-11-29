@@ -69,8 +69,8 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
 
   public static class CounterBuilder extends AbstractMetricBuilder<Counter, CounterBuilder> {
 
-    public CounterBuilder(final String name, final String help, final MetricRegistry metricRegistry) {
-      super(name, help, metricRegistry);
+    public CounterBuilder(final String name, final String help) {
+      super(name, help);
     }
 
     @Override

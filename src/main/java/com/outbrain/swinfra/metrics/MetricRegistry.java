@@ -15,17 +15,18 @@ public class MetricRegistry {
   private final Map<String, AbstractMetric<?>> allMetricsView = Collections.unmodifiableMap(allMetrics);
 
   /**
-   * Registers a metric in this registry
-   *
+   * Registers a metric in this registry if it doesn't already exist, and returns the existing metric if the same
+   * metric already exists.
+   * <p>
+   *   A metric already exists if a metric with the same name and label names was already registered in this registry
+   * </p>
    * @throws IllegalArgumentException if a metric with the same name was already registered
    */
-  void register(final AbstractMetric<?> metric) {
+  @SuppressWarnings("unchecked")
+  public <T extends AbstractMetric<?>> T getOrRegister(final AbstractMetric<?> metric) {
     requireNonNull(metric, "metric may not be null");
     final String key = createKey(metric.getName(), metric.getLabelNames());
-    if (allMetrics.putIfAbsent(key, metric) != null) {
-      throw new IllegalArgumentException("A metric with this name and labels was already registered: "
-          + metric.getName() + " - " + metric.getLabelNames());
-    }
+    return (T) allMetrics.computeIfAbsent(key, s -> metric);
   }
 
   private String createKey(final String metricName, final List<String> labelNames) {

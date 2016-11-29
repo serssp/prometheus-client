@@ -37,7 +37,7 @@ class TimerTest extends Specification {
             ]
 
         when:
-            final Timer timer = new Timer.TimerBuilder(NAME, HELP, metricRegistry).register();
+            final Timer timer = new Timer.TimerBuilder(NAME, HELP).build();
 
         then:
             timer.getSamples().sort() == metricFamilySamples.sort()

@@ -17,7 +17,7 @@ class MetricRegistryTest extends Specification {
     def 'Metric registry should contain one metric when one is added'() {
         when:
             final MetricRegistry registry = new MetricRegistry()
-            final Counter counter = new CounterBuilder("name", "help", registry).register()
+            final Counter counter = registry.getOrRegister(new CounterBuilder("name", "help").build())
 
         then:
             registry.all().toList().sort() == [counter]
@@ -26,40 +26,37 @@ class MetricRegistryTest extends Specification {
     def 'Metric registry should contain three metric when three are added'() {
         when:
             final MetricRegistry registry = new MetricRegistry()
-            final Counter counter = new CounterBuilder("name", "help", registry).register()
-            final Counter counter1 = new CounterBuilder("name1", "help", registry).register()
-            final Counter counter2 = new CounterBuilder("name2", "help", registry).register()
+            final Counter counter = registry.getOrRegister(new CounterBuilder("name", "help").build())
+            final Counter counter1 = registry.getOrRegister(new CounterBuilder("name1", "help").build())
+            final Counter counter2 = registry.getOrRegister(new CounterBuilder("name2", "help").build())
 
         then:
             registry.all().toList().sort() == [counter, counter1, counter2].sort()
     }
 
-    def 'Metric registry should throw an exception when a metric with an existing name is registered'() {
+    def 'Metric registry should return the already registered metric when attempting to register a metric with the same name and no labels'() {
         final String metricName = "existing metric name"
 
         when:
             final MetricRegistry registry = new MetricRegistry()
-            new CounterBuilder(metricName, "help", registry).register()
-            new CounterBuilder(metricName, "help", registry).register()
+            final Counter firstCounter = registry.getOrRegister(new CounterBuilder(metricName, "help").build())
+            final Counter secondCounter = registry.getOrRegister(new CounterBuilder(metricName, "help").build())
 
         then:
-            final IllegalArgumentException ex = thrown()
-            ex.getMessage().contains(metricName)
+            secondCounter.is(firstCounter)
     }
 
-    def 'Metric registry should throw an exception when a metric with an existing name and labels is registered'() {
+    def 'Metric registry should return the already registered metric when attempting to register a metric with the same name labels'() {
         final String metricName = "existing metric name"
         final String label = "myLabel"
 
         when:
             final MetricRegistry registry = new MetricRegistry()
-            new CounterBuilder(metricName, "help", registry).withLabels(label).register()
-            new CounterBuilder(metricName, "help", registry).withLabels(label).register()
+            final Counter firstCounter = registry.getOrRegister(new CounterBuilder(metricName, "help").withLabels(label).build())
+            final Counter secondCounter = registry.getOrRegister(new CounterBuilder(metricName, "help").withLabels(label).build())
 
         then:
-            final IllegalArgumentException ex = thrown()
-            ex.getMessage().contains(metricName)
-            ex.getMessage().contains(label)
+            secondCounter.is(firstCounter)
     }
 
     def 'Metric registry should register a metric with an existing name but different labels'() {
@@ -67,8 +64,8 @@ class MetricRegistryTest extends Specification {
 
         when:
             final MetricRegistry registry = new MetricRegistry()
-            final Counter counter1 = new CounterBuilder(metricName, "help", registry).register()
-            final Counter counter2 = new CounterBuilder(metricName, "help", registry).withLabels("label").register()
+            final Counter counter1 = registry.getOrRegister(new CounterBuilder(metricName, "help").build())
+            final Counter counter2 = registry.getOrRegister(new CounterBuilder(metricName, "help").withLabels("label").build())
 
         then:
             registry.all().sort() == [counter1, counter2].sort()

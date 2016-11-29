@@ -59,8 +59,8 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
 
   public static class TimerBuilder extends AbstractMetricBuilder<Timer, TimerBuilder> {
 
-    public TimerBuilder(final String name, final String help, final MetricRegistry metricRegistry) {
-      super(name, help, metricRegistry);
+    public TimerBuilder(final String name, final String help) {
+      super(name, help);
     }
 
     protected Timer create(final String fullName, final String help, final String[] labelNames) {

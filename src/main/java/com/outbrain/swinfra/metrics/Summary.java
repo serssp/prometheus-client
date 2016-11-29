@@ -78,8 +78,8 @@ public class Summary extends AbstractMetricWithQuantiles<Histogram> {
 
   public static class SummaryBuilder extends AbstractMetricBuilder<Summary, SummaryBuilder> {
 
-    public SummaryBuilder(final String name, final String help, final MetricRegistry metricRegistry) {
-      super(name, help, metricRegistry);
+    public SummaryBuilder(final String name, final String help) {
+      super(name, help);
     }
 
     @Override
