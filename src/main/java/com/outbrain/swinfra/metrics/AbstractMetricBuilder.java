@@ -34,7 +34,6 @@ public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends 
 
   protected abstract T create(final String fullName, final String help, final String[] labelNames);
 
-  //Handle cases where a metric is created but it already exists
   public T build() {
     validateParams();
     final T metric = create(createFullName(), help, labelNames);
