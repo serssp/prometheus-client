@@ -14,8 +14,6 @@ class GaugeTest extends Specification {
     private static final String NAME = "NAME"
     private static final String HELP = "HELP"
 
-    final MetricRegistry metricRegistry = new MetricRegistry();
-    
     def 'Gauge should return the correct samples without labels'() {
         final double expectedValue = 239487234
 

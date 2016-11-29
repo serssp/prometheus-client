@@ -18,8 +18,6 @@ class SummaryTest extends Specification {
     private static final String HELP = "HELP"
     private static final List<String> QUANTILE_LABEL = singletonList("quantile")
 
-    final MetricRegistry metricRegistry = new MetricRegistry();
-
     def 'Summary with no labels should return correct samples for newly initialized metric'() {
         given:
             final List<Sample> samples = [
