@@ -31,11 +31,48 @@ class TimerTest extends Specification {
                 new Sample(SUM_NAME, emptyList(), emptyList(), 0)
             ]
             final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME,SUMMARY , HELP, samples)
+                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
             ]
 
         when:
             final Timer timer = new Timer.TimerBuilder(NAME, HELP).build();
+
+        then:
+            timer.getSamples().sort() == metricFamilySamples.sort()
+    }
+
+    def 'Timer should return correct samples for newly initialized metric with labels'() {
+        final List<String> labelNames = ["label1", "label2"]
+        final List<String> labelValues = ["value1", "value2"]
+
+        given:
+            final List<Sample> samples = [
+                sampleForQuantile("0.5", 500, labelNames, labelValues),
+                sampleForQuantile("0.75", 750, labelNames, labelValues),
+                sampleForQuantile("0.95", 950, labelNames, labelValues),
+                sampleForQuantile("0.98", 980, labelNames, labelValues),
+                sampleForQuantile("0.99", 990, labelNames, labelValues),
+                sampleForQuantile("0.999", 999, labelNames, labelValues),
+                new Sample(COUNT_NAME, labelNames, labelValues, 1000),
+                new Sample(SUM_NAME, labelNames, labelValues, SUM_1_TO_1000)
+            ]
+            final List<MetricFamilySamples> metricFamilySamples = [
+                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
+            ]
+
+            final MyClock testClock = new MyClock()
+        when:
+            final MyTimer timer = new MyTimer(NAME, HELP, testClock, labelNames)
+            timer.initChildMetricRepo()
+
+            1.upto(1000, {
+                //Set the clock to 0 before starting the timer, and set it to the current element before stopping the timer
+                //This way the measurements will be 1,2,3,...,1000
+                testClock.setTick(0)
+                final TimerContext context = timer.startTimer(labelValues as String[])
+                testClock.setTick(it)
+                context.stop()
+            })
 
         then:
             timer.getSamples().sort() == metricFamilySamples.sort()
@@ -54,7 +91,7 @@ class TimerTest extends Specification {
                 new Sample(SUM_NAME, emptyList(), emptyList(), SUM_1_TO_1000)
             ]
             final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME,SUMMARY , HELP, samples)
+                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
             ]
 
             final MyClock testClock = new MyClock()
@@ -76,8 +113,15 @@ class TimerTest extends Specification {
             timer.getSamples().sort() == metricFamilySamples.sort()
     }
 
-    private static Sample sampleForQuantile(final String quantile, final double value) {
-        return new Sample(NAME, QUANTILE_LABEL, [quantile], value)
+    private static Sample sampleForQuantile(final String quantile,
+                                            final double value,
+                                            final List<String> extraLabelNames = [],
+                                            final List<String> extraLabelValues = []) {
+        return new Sample(
+            NAME,
+            (extraLabelNames + QUANTILE_LABEL) as List,
+            (extraLabelValues + [quantile]) as List,
+            value)
     }
 
 }

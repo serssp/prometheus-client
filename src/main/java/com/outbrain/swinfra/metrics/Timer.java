@@ -1,6 +1,7 @@
 package com.outbrain.swinfra.metrics;
 
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
+import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 import io.prometheus.client.Collector;
@@ -9,6 +10,7 @@ import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
 import java.util.List;
 
+import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
 import static io.prometheus.client.Collector.Type.SUMMARY;
 
 /**
@@ -22,7 +24,14 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
 
   @Override
   ChildMetricRepo<com.codahale.metrics.Timer> createChildMetricRepo() {
-    return new UnlabeledChildRepo<>(new MetricData<>(new com.codahale.metrics.Timer(), new String[]{}));
+    if (getLabelNames().size() == 0) {
+      return new UnlabeledChildRepo<>(new MetricData<>(new com.codahale.metrics.Timer(), new String[]{}));
+    } else {
+      return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
+        final String[] labelValues = commaDelimitedStringToLabels(commaDelimitedLabelValues);
+        return new MetricData<>(new com.codahale.metrics.Timer(), labelValues);
+      });
+    }
   }
 
   @Override
@@ -36,8 +45,8 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
     return new MetricFamilySamples(getName(), getType(), getHelp(), samples);
   }
 
-  public TimerContext startTimer() {
-    return TimerContext.startTimer(metricForLabels().time());
+  public TimerContext startTimer(final String... labelValues) {
+    return TimerContext.startTimer(metricForLabels(labelValues).time());
   }
 
   public static class TimerContext {
