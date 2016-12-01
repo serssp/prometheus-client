@@ -1,7 +1,8 @@
 package com.outbrain.swinfra.metrics;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.outbrain.swinfra.metrics.StringUtils.isNotBlank;
+import org.apache.commons.lang3.Validate;
+
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends AbstractMetricBuilder<T, B>> {
 
@@ -42,10 +43,10 @@ public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends 
   }
 
   void validateParams() {
-    checkArgument(isNotBlank(name), "The metric's name must contain text");
-    checkArgument(isNotBlank(help), "The metric's help must contain text");
+    Validate.notBlank(name, "The metric's name must contain text");
+    Validate.notBlank(help, "The metric's help must contain text");
     for (final String labelName : labelNames) {
-      checkArgument(isNotBlank(labelName), "Label names must contain text");
+      Validate.notBlank(labelName, "Label names must contain text");
     }
   }
 

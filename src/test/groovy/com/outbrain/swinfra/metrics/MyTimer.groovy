@@ -6,16 +6,24 @@ import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo
 import com.outbrain.swinfra.metrics.children.MetricData
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo
 
+import java.util.concurrent.TimeUnit
 import java.util.function.Function
 
 import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels
 
+/**
+ * A custom timer implementation in order to be able to provide a custom clock which facilitates testing the timer
+ */
 class MyTimer extends Timer {
 
     private final MyClock clock;
 
-    public MyTimer(final String name, final String help, final MyClock myClock, final List<String> labelNames = []) {
-        super(name, help, labelNames as String[])
+    public MyTimer(final String name,
+                   final String help,
+                   final MyClock myClock,
+                   final List<String> labelNames = [],
+                   final TimeUnit measureIn = TimeUnit.NANOSECONDS) {
+        super(name, help, labelNames as String[], measureIn)
         this.clock = myClock
     }
 

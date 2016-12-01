@@ -8,7 +8,9 @@ import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
 import static io.prometheus.client.Collector.Type.SUMMARY;
@@ -18,8 +20,11 @@ import static io.prometheus.client.Collector.Type.SUMMARY;
  */
 public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Timer> {
 
-  Timer(final String name, final String help, final String[] labelNames) {
+  private final TimeUnit measurementUnit;
+
+  Timer(final String name, final String help, final String[] labelNames, final TimeUnit measurementUnit) {
     super(name, help, labelNames);
+    this.measurementUnit = measurementUnit;
   }
 
   @Override
@@ -41,7 +46,8 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
 
   @Override
   MetricFamilySamples toMetricFamilySamples(final MetricData<com.codahale.metrics.Timer> metricData) {
-    final List<Sample> samples = createSamplesFromSnapshot(metricData.getMetric(), metricData.getLabelValues());
+    final double measurementFactor = 1.0 / measurementUnit.toNanos(1); // if measurementUnit = milliseconds, then measurementUnit.toNanos(1) = 1000000
+    final List<Sample> samples = createSamplesFromSnapshot(metricData.getMetric(), metricData.getLabelValues(), measurementFactor);
     return new MetricFamilySamples(getName(), getType(), getHelp(), samples);
   }
 
@@ -68,12 +74,19 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
 
   public static class TimerBuilder extends AbstractMetricBuilder<Timer, TimerBuilder> {
 
+    private TimeUnit measurementUnit = TimeUnit.NANOSECONDS;
+
     public TimerBuilder(final String name, final String help) {
       super(name, help);
     }
 
+    public TimerBuilder measureIn(final TimeUnit unit) {
+      this.measurementUnit = unit;
+      return this;
+    }
+
     protected Timer create(final String fullName, final String help, final String[] labelNames) {
-      return new Timer(fullName, help, labelNames);
+      return new Timer(fullName, help, labelNames, measurementUnit);
     }
   }
 }

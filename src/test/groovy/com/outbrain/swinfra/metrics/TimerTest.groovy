@@ -3,6 +3,9 @@ package com.outbrain.swinfra.metrics
 import com.outbrain.swinfra.metrics.Timer.TimerContext
 import spock.lang.Specification
 
+import java.time.Duration
+import java.util.concurrent.TimeUnit
+
 import static io.prometheus.client.Collector.MetricFamilySamples
 import static io.prometheus.client.Collector.MetricFamilySamples.Sample
 import static io.prometheus.client.Collector.Type.SUMMARY
@@ -111,6 +114,25 @@ class TimerTest extends Specification {
 
         then:
             timer.getSamples().sort() == metricFamilySamples.sort()
+    }
+
+    def 'Timer should return convert sample to requested units'() {
+        final int measurement = 10
+
+        given:
+            final MyClock testClock = new MyClock()
+
+        when:
+            final MyTimer timer = new MyTimer(NAME, HELP, testClock, [], TimeUnit.MILLISECONDS)
+            timer.initChildMetricRepo()
+            testClock.setTick(0)
+            final TimerContext context = timer.startTimer()
+            testClock.setTick(TimeUnit.MILLISECONDS.toNanos(measurement)) //Measure 10 milliseconds
+            context.stop()
+
+        then:
+            final Sample sumSample = timer.getSamples()[0].samples.find {it.name.endsWith("sum")}
+            sumSample.value == measurement
     }
 
     private static Sample sampleForQuantile(final String quantile,

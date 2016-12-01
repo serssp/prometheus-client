@@ -6,7 +6,7 @@ import spock.lang.Unroll
 class AbstractMetricBuilderTest extends Specification {
 
     @Unroll
-    def 'builder should throw exception on  name #name help #help and labels #labels'() {
+    def 'builder should throw exception on name #name help #help and labels #labels'() {
         given:
             AbstractMetricBuilder builder = new MyBuilder(name, help)
             if (labels) {
@@ -15,7 +15,7 @@ class AbstractMetricBuilderTest extends Specification {
         when:
             builder.build()
         then:
-            def ex = thrown IllegalArgumentException
+            final def ex = thrown Exception
             ex.message.contains(expectedInErrorMessage)
         where:
             name        | help        | labels          | expectedInErrorMessage
@@ -29,12 +29,12 @@ class AbstractMetricBuilderTest extends Specification {
 
     private class MyBuilder extends AbstractMetricBuilder {
 
-        MyBuilder(String name, String help) {
+        MyBuilder(final String name, final String help) {
             super(name, help)
         }
 
         @Override
-        protected AbstractMetric create(String fullName, String help, String[] labelNames) {
+        protected AbstractMetric create(final String fullName, final String help, final String[] labelNames) {
             return null
         }
     }

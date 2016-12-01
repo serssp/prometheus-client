@@ -8,6 +8,7 @@ import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
+import org.apache.commons.lang3.Validate;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,7 +17,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleSupplier;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
 import static com.outbrain.swinfra.metrics.LabelUtils.labelsToCommaDelimitedString;
 import static io.prometheus.client.Collector.Type.GAUGE;
@@ -130,7 +130,7 @@ public class Gauge extends AbstractMetric<CachedGauge<Double>> {
     private void validateValueSuppliersLabels() {
       final int numOfLabels = labelNames.length;
       valueSuppliers.keySet()
-                    .forEach(labelValues -> checkArgument(
+                    .forEach(labelValues -> Validate.isTrue(
                         labelValues.length == numOfLabels,
                         "Labels %s does not contain the expected amount %s",
                         Arrays.toString(labelValues),

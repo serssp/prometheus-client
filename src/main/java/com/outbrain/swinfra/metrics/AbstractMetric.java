@@ -5,13 +5,11 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples;
+import org.apache.commons.lang3.Validate;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.outbrain.swinfra.metrics.StringUtils.isNotBlank;
 
 abstract class AbstractMetric<T extends Metric> {
 
@@ -52,11 +50,11 @@ abstract class AbstractMetric<T extends Metric> {
 
   void validateLabelValues(final String... labelValues) {
     if (labelNames.size() > 0) {
-      checkArgument(labelNames.size() == labelValues.length, "A label value must be supplied for each label name");
+      Validate.isTrue(labelNames.size() == labelValues.length, "A label value must be supplied for each label name");
     }
 
     for (final String labelName : labelNames) {
-      checkArgument(isNotBlank(labelName), "Label names must contain text");
+      Validate.notBlank(labelName, "Label names must contain text");
     }
   }
 
