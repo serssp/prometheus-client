@@ -71,9 +71,8 @@ public class Summary extends AbstractMetricWithQuantiles<Histogram> {
   }
 
   @Override
-  MetricFamilySamples toMetricFamilySamples(final MetricData<Histogram> metricData) {
-    final List<Sample> samples = createSamplesFromSnapshot(metricData.getMetric(), metricData.getLabelValues(), 1);
-    return new MetricFamilySamples(getName(), getType(), getHelp(), samples);
+  List<Sample> createSamples(final String metricName, final MetricData<Histogram> metricData) {
+    return createSamplesFromSnapshot(metricData.getMetric(), metricData.getLabelValues(), 1);
   }
 
   public static class SummaryBuilder extends AbstractMetricBuilder<Summary, SummaryBuilder> {

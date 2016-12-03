@@ -20,11 +20,11 @@ import static io.prometheus.client.Collector.Type.SUMMARY;
  */
 public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Timer> {
 
-  private final TimeUnit measurementUnit;
+  private final double measurementFactor;
 
   Timer(final String name, final String help, final String[] labelNames, final TimeUnit measurementUnit) {
     super(name, help, labelNames);
-    this.measurementUnit = measurementUnit;
+    this.measurementFactor  = 1.0 / measurementUnit.toNanos(1); // if measurementUnit = milliseconds, then measurementUnit.toNanos(1) = 1000000
   }
 
   @Override
@@ -45,10 +45,8 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
   }
 
   @Override
-  MetricFamilySamples toMetricFamilySamples(final MetricData<com.codahale.metrics.Timer> metricData) {
-    final double measurementFactor = 1.0 / measurementUnit.toNanos(1); // if measurementUnit = milliseconds, then measurementUnit.toNanos(1) = 1000000
-    final List<Sample> samples = createSamplesFromSnapshot(metricData.getMetric(), metricData.getLabelValues(), measurementFactor);
-    return new MetricFamilySamples(getName(), getType(), getHelp(), samples);
+  List<Sample> createSamples(final String metricName, final MetricData<com.codahale.metrics.Timer> metricData) {
+    return createSamplesFromSnapshot(metricData.getMetric(), metricData.getLabelValues(), measurementFactor);
   }
 
   public TimerContext startTimer(final String... labelValues) {

@@ -5,6 +5,7 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples;
+import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Arrays;
@@ -30,18 +31,18 @@ abstract class AbstractMetric<T extends Metric> {
 
   abstract Collector.Type getType();
 
-  abstract MetricFamilySamples toMetricFamilySamples(final MetricData<T> metricData);
+  abstract List<Sample> createSamples(String metricName, MetricData<T> metricData);
 
   String getName() {
     return name;
   }
 
-  String getHelp() {
-    return help;
-  }
-
   List<String> getLabelNames() {
     return labelNames;
+  }
+
+  private MetricFamilySamples toMetricFamilySamples(final MetricData<T> metricData) {
+    return new MetricFamilySamples(name, getType(), help, createSamples(name, metricData));
   }
 
   void initChildMetricRepo() {

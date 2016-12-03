@@ -61,10 +61,11 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
   }
 
   @Override
-  MetricFamilySamples toMetricFamilySamples(final MetricData<com.codahale.metrics.Counter> metricData) {
-    final List<Sample> samples = singletonList(
-        new Sample(getName(), getLabelNames(), metricData.getLabelValues(), metricData.getMetric().getCount()));
-    return new MetricFamilySamples(getName(), getType(), getHelp(), samples);
+  List<Sample> createSamples(final String metricName, final MetricData<com.codahale.metrics.Counter> metricData) {
+    return singletonList(new Sample(getName(),
+                                    getLabelNames(),
+                                    metricData.getLabelValues(),
+                                    metricData.getMetric().getCount()));
   }
 
   public static class CounterBuilder extends AbstractMetricBuilder<Counter, CounterBuilder> {
