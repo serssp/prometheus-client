@@ -1,5 +1,7 @@
 package com.outbrain.swinfra.metrics
 
+import com.outbrain.swinfra.metrics.samples.SampleCreator
+import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator
 import spock.lang.Specification
 
 import static com.outbrain.swinfra.metrics.Summary.SummaryBuilder
@@ -12,6 +14,7 @@ import static java.util.Collections.singletonList
 class SummaryTest extends Specification {
 
     private static final int SUM_1_TO_1000 = 500500
+    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator(Collections.emptyMap())
     private static final String NAME = "NAME"
     private static final String SUM_NAME = NAME + "_sum"
     private static final String COUNT_NAME = NAME + "_count"
@@ -38,7 +41,7 @@ class SummaryTest extends Specification {
             final Summary summary = new SummaryBuilder(NAME, HELP).build();
 
         then:
-            summary.getSamples().sort() == metricFamilySamples.sort()
+            summary.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
     }
 
     def 'Summary with no labels should return correct samples after some measurements'() {
@@ -62,7 +65,34 @@ class SummaryTest extends Specification {
             1.upto(1000, {summary.observe(it)})
 
         then:
-            summary.getSamples().sort() == metricFamilySamples.sort()
+            summary.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
+    }
+
+    def 'Summary with no labels and sampleCreator with labels should return correct samples after some measurements'() {
+        final Map<String, String> labelsMap = [sam1: "sam-val1", sam2: "sam-val2"]
+        final SampleCreator sampleCreator = new StaticLablesSampleCreator(labelsMap)
+
+        given:
+            final List<Sample> samples = [
+                sampleForQuantile("0.5", 500, labelsMap.keySet() as List, labelsMap.values() as List),
+                sampleForQuantile("0.75", 750, labelsMap.keySet() as List, labelsMap.values() as List),
+                sampleForQuantile("0.95", 950, labelsMap.keySet() as List, labelsMap.values() as List),
+                sampleForQuantile("0.98", 980, labelsMap.keySet() as List, labelsMap.values() as List),
+                sampleForQuantile("0.99", 990, labelsMap.keySet() as List, labelsMap.values() as List),
+                sampleForQuantile("0.999", 999, labelsMap.keySet() as List, labelsMap.values() as List),
+                new Sample(COUNT_NAME, labelsMap.keySet() as List, labelsMap.values() as List, 1000),
+                new Sample(SUM_NAME, labelsMap.keySet() as List, labelsMap.values() as List, SUM_1_TO_1000)
+            ]
+            final List<MetricFamilySamples> metricFamilySamples = [
+                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
+            ]
+
+        when:
+            final Summary summary = new SummaryBuilder(NAME, HELP).build();
+            1.upto(1000, {summary.observe(it)})
+
+        then:
+            summary.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
     }
 
     def 'Summary with labels should return correct samples after some measurements'() {
@@ -105,7 +135,7 @@ class SummaryTest extends Specification {
             1.upto(1000, {summary.observe(it, labelValues2 as String[])})
 
         then:
-            summary.getSamples().sort() == metricFamilySamples.sort()
+            summary.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
     }
 
     private static Sample sampleForQuantile(final String quantile, final double value) {

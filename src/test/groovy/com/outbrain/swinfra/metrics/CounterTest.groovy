@@ -1,5 +1,7 @@
 package com.outbrain.swinfra.metrics
 
+import com.outbrain.swinfra.metrics.samples.SampleCreator
+import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -13,6 +15,7 @@ class CounterTest extends Specification {
 
     private static final String NAME = "NAME"
     private static final String HELP = "HELP"
+    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator(Collections.emptyMap())
 
     @Unroll
     def 'Counter should return #expectedValue after incrementing #increment times'() {
@@ -75,7 +78,7 @@ class CounterTest extends Specification {
         counter.inc(6, labelValues2)
 
         then:
-        counter.getSamples().sort() == metricFamilySamples.sort()
+        counter.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
     }
 
     def 'Counter should return the correct samples with subsystem defined'() {
@@ -93,7 +96,7 @@ class CounterTest extends Specification {
             .build()
 
         then:
-            counter.getSamples().sort() == metricFamilySamples.sort()
+            counter.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
     }
 
     def 'Counter should return the correct samples with namespace and subsystem defined'() {
@@ -113,7 +116,7 @@ class CounterTest extends Specification {
                  .build()
 
         then:
-          counter.getSamples().sort() == metricFamilySamples.sort()
+          counter.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
     }
 
     def 'Counter should return the correct samples with namespace defined'() {
@@ -131,6 +134,6 @@ class CounterTest extends Specification {
                 .build()
 
         then:
-            counter.getSamples().sort() == metricFamilySamples.sort()
+            counter.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
     }
 }

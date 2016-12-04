@@ -32,7 +32,7 @@ class StaticLabelsSampleCreatorTest extends Specification {
             final SampleCreator sampleCreator = new StaticLablesSampleCreator(createLabelsMap(["a1", "a2"], ["va1", "va2"]))
 
         when:
-            final Sample sample = sampleCreator.createSample("name", 1.1, labelNames, labelValues)
+            final Sample sample = sampleCreator.createSample("name", labelNames, labelValues, 1.1)
 
         then:
             sample == expectedSample

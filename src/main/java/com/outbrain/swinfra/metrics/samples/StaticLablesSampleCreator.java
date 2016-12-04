@@ -20,11 +20,13 @@ public class StaticLablesSampleCreator implements SampleCreator {
 
   @Override
   public Sample createSample(final String name, final double value) {
-    return createSample(name, value, Collections.emptyList(), Collections.emptyList());
+    return createSample(name, Collections.emptyList(), Collections.emptyList(), value);
   }
 
   @Override
-  public Sample createSample(final String name, final double value, final List<String> labelNames, final List<String> labelValues) {
+  public Sample createSample(final String name,
+                             final List<String> labelNames,
+                             final List<String> labelValues, final double value) {
     final List<String> finalLabelNames = new ArrayList<>(staticLabelNames);
     finalLabelNames.addAll(labelNames);
 

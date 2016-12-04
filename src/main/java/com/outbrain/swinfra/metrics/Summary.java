@@ -6,8 +6,8 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
+import com.outbrain.swinfra.metrics.samples.SampleCreator;
 import io.prometheus.client.Collector;
-import io.prometheus.client.Collector.MetricFamilySamples;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
 import java.util.List;
@@ -71,8 +71,9 @@ public class Summary extends AbstractMetricWithQuantiles<Histogram> {
   }
 
   @Override
-  List<Sample> createSamples(final String metricName, final MetricData<Histogram> metricData) {
-    return createSamplesFromSnapshot(metricData.getMetric(), metricData.getLabelValues(), 1);
+  List<Sample> createSamples(final MetricData<Histogram> metricData,
+                             final SampleCreator sampleCreator) {
+    return createSamplesFromSnapshot(metricData, 1, sampleCreator);
   }
 
   public static class SummaryBuilder extends AbstractMetricBuilder<Summary, SummaryBuilder> {

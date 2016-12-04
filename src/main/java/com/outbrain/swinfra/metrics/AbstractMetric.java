@@ -3,6 +3,7 @@ package com.outbrain.swinfra.metrics;
 import com.codahale.metrics.Metric;
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
+import com.outbrain.swinfra.metrics.samples.SampleCreator;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
@@ -31,7 +32,7 @@ abstract class AbstractMetric<T extends Metric> {
 
   abstract Collector.Type getType();
 
-  abstract List<Sample> createSamples(String metricName, MetricData<T> metricData);
+  abstract List<Sample> createSamples(MetricData<T> metricData, SampleCreator sampleCreator);
 
   String getName() {
     return name;
@@ -41,8 +42,8 @@ abstract class AbstractMetric<T extends Metric> {
     return labelNames;
   }
 
-  private MetricFamilySamples toMetricFamilySamples(final MetricData<T> metricData) {
-    return new MetricFamilySamples(name, getType(), help, createSamples(name, metricData));
+  private MetricFamilySamples toMetricFamilySamples(final MetricData<T> metricData, final SampleCreator sampleCreator) {
+    return new MetricFamilySamples(name, getType(), help, createSamples(metricData, sampleCreator));
   }
 
   void initChildMetricRepo() {
@@ -63,10 +64,10 @@ abstract class AbstractMetric<T extends Metric> {
     return childMetricRepo.metricForLabels(labelValues).getMetric();
   }
 
-  List<MetricFamilySamples> getSamples() {
+  List<MetricFamilySamples> getSamples(final SampleCreator sampleCreator) {
     return childMetricRepo.all()
                           .stream()
-                          .map(this::toMetricFamilySamples)
+                          .map(metricData -> toMetricFamilySamples(metricData, sampleCreator))
                           .collect(Collectors.toList());
   }
 

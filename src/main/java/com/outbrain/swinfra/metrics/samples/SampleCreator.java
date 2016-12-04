@@ -8,6 +8,9 @@ public interface SampleCreator {
 
   Sample createSample(final String name, final double value);
 
-  Sample createSample(final String name, final double value, final List<String> labelNames, final List<String> labelValues);
+  Sample createSample(final String name,
+                      final List<String> labelNames,
+                      final List<String> labelValues,
+                      final double value);
 
 }

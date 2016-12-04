@@ -4,11 +4,10 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
+import com.outbrain.swinfra.metrics.samples.SampleCreator;
 import io.prometheus.client.Collector;
-import io.prometheus.client.Collector.MetricFamilySamples;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -45,8 +44,9 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
   }
 
   @Override
-  List<Sample> createSamples(final String metricName, final MetricData<com.codahale.metrics.Timer> metricData) {
-    return createSamplesFromSnapshot(metricData.getMetric(), metricData.getLabelValues(), measurementFactor);
+  List<Sample> createSamples(final MetricData<com.codahale.metrics.Timer> metricData,
+                             final SampleCreator sampleCreator) {
+    return createSamplesFromSnapshot(metricData, measurementFactor, sampleCreator);
   }
 
   public TimerContext startTimer(final String... labelValues) {

@@ -5,8 +5,8 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
+import com.outbrain.swinfra.metrics.samples.SampleCreator;
 import io.prometheus.client.Collector;
-import io.prometheus.client.Collector.MetricFamilySamples;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 import org.apache.commons.lang3.Validate;
 
@@ -53,12 +53,12 @@ public class Gauge extends AbstractMetric<CachedGauge<Double>> {
   }
 
   @Override
-  List<Sample> createSamples(final String metricName,
-                             final MetricData<CachedGauge<Double>> metricData) {
-    return singletonList(new Sample(getName(),
-                                    getLabelNames(),
-                                    metricData.getLabelValues(),
-                                    metricData.getMetric().getValue()));
+  List<Sample> createSamples(final MetricData<CachedGauge<Double>> metricData, final SampleCreator sampleCreator) {
+    return singletonList(sampleCreator.createSample(getName(),
+                                                    getLabelNames(),
+                                                    metricData.getLabelValues(),
+                                                    metricData.getMetric().getValue()
+    ));
   }
 
   @Override

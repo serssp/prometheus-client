@@ -1,5 +1,7 @@
 package com.outbrain.swinfra.metrics
 
+import com.outbrain.swinfra.metrics.samples.SampleCreator
+import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator
 import spock.lang.Specification
 
 import java.util.function.DoubleSupplier
@@ -13,6 +15,7 @@ class GaugeTest extends Specification {
 
     private static final String NAME = "NAME"
     private static final String HELP = "HELP"
+    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator(Collections.emptyMap())
 
     def 'Gauge should return the correct samples without labels'() {
         final double expectedValue = 239487234
@@ -26,7 +29,7 @@ class GaugeTest extends Specification {
                 .build()
 
         then:
-            gauge.getSamples() == metricFamilySamples;
+            gauge.getSamples(sampleCreator) == metricFamilySamples;
     }
 
     def 'Gauge should return the correct samples with labels'() {
@@ -49,7 +52,7 @@ class GaugeTest extends Specification {
 
 
         then:
-            gauge.getSamples().sort() == metricFamilySamples.sort();
+            gauge.getSamples(sampleCreator).sort() == metricFamilySamples.sort();
     }
 
     def 'GaugeBuilder should throw an exception on null value supplier'() {

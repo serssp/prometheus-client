@@ -5,8 +5,8 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
+import com.outbrain.swinfra.metrics.samples.SampleCreator;
 import io.prometheus.client.Collector;
-import io.prometheus.client.Collector.MetricFamilySamples;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
 import java.util.List;
@@ -61,11 +61,13 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
   }
 
   @Override
-  List<Sample> createSamples(final String metricName, final MetricData<com.codahale.metrics.Counter> metricData) {
-    return singletonList(new Sample(getName(),
-                                    getLabelNames(),
-                                    metricData.getLabelValues(),
-                                    metricData.getMetric().getCount()));
+  List<Sample> createSamples(final MetricData<com.codahale.metrics.Counter> metricData,
+                             final SampleCreator sampleCreator) {
+    return singletonList(sampleCreator.createSample(getName(),
+                                                    getLabelNames(),
+                                                    metricData.getLabelValues(),
+                                                    metricData.getMetric().getCount()
+    ));
   }
 
   public static class CounterBuilder extends AbstractMetricBuilder<Counter, CounterBuilder> {

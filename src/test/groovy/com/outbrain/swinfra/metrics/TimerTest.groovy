@@ -1,9 +1,10 @@
 package com.outbrain.swinfra.metrics
 
 import com.outbrain.swinfra.metrics.Timer.TimerContext
+import com.outbrain.swinfra.metrics.samples.SampleCreator
+import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator
 import spock.lang.Specification
 
-import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 import static io.prometheus.client.Collector.MetricFamilySamples
@@ -15,6 +16,7 @@ import static java.util.Collections.singletonList
 class TimerTest extends Specification {
 
     private static final int SUM_1_TO_1000 = 500500
+    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator(Collections.emptyMap())
     private static final String NAME = "NAME"
     private static final String SUM_NAME = NAME + "_sum"
     private static final String COUNT_NAME = NAME + "_count"
@@ -41,7 +43,7 @@ class TimerTest extends Specification {
             final Timer timer = new Timer.TimerBuilder(NAME, HELP).build();
 
         then:
-            timer.getSamples().sort() == metricFamilySamples.sort()
+            timer.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
     }
 
     def 'Timer should return correct samples for newly initialized metric with labels'() {
@@ -78,7 +80,7 @@ class TimerTest extends Specification {
             })
 
         then:
-            timer.getSamples().sort() == metricFamilySamples.sort()
+            timer.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
     }
 
     def 'Timer should return correct samples after 1000 measurements'() {
@@ -113,7 +115,7 @@ class TimerTest extends Specification {
             })
 
         then:
-            timer.getSamples().sort() == metricFamilySamples.sort()
+            timer.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
     }
 
     def 'Timer should return convert sample to requested units'() {
@@ -131,7 +133,7 @@ class TimerTest extends Specification {
             context.stop()
 
         then:
-            final Sample sumSample = timer.getSamples()[0].samples.find {it.name.endsWith("sum")}
+            final Sample sumSample = timer.getSamples(sampleCreator)[0].samples.find {it.name.endsWith("sum")}
             sumSample.value == measurement
     }
 
