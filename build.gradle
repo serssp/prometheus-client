@@ -2,23 +2,26 @@ plugins {
     id 'idea'
     id 'groovy'
     id 'maven'
+    id "com.jfrog.bintray" version "1.7"
 }
 
 group = 'com.outbrain.swinfra'
-version = '0.2-SNAPSHOT'
+version = '0.4'
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
+
 dependencies {
-    compile (
+    compile(
         'io.dropwizard.metrics:metrics-core:3.1.2',
         'io.prometheus:simpleclient:0.0.18',
         'org.apache.commons:commons-lang3:3.3.2'
     )
 
-    testCompile (
+    testCompile(
         'junit:junit:4.12',
         'org.spockframework:spock-core:1.0-groovy-2.0'
     )
@@ -31,4 +34,21 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 artifacts {
     archives sourcesJar
+}
+
+bintray {
+    user = System.getProperty('bintray.user')
+    key = System.getProperty('bintray.key')
+    configurations = ['archives']
+
+    pkg {
+        repo = 'OutbrainOSS'
+        name = 'prometheus-client'
+        userOrg = 'outbrain'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/outbrain/prometheus-client.git'
+        version {
+            name = project.version
+        }
+    }
 }
