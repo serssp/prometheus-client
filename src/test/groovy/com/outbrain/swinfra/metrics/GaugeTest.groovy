@@ -39,9 +39,10 @@ class GaugeTest extends Specification {
         final String[] labelValues2 = ["val2", "val3"]
         final double expectedValue2 = 181239813
         given:
-            final List<Sample> samples1 = [new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), expectedValue1)]
-            final List<Sample> samples2 = [new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), expectedValue2)]
-            final List<MetricFamilySamples> metricFamilySamples = [new MetricFamilySamples(NAME, GAUGE, HELP, samples1), new MetricFamilySamples(NAME, GAUGE, HELP, samples2)]
+            final Sample sample1 = new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), expectedValue1)
+            final Sample sample2 = new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), expectedValue2)
+            final List<MetricFamilySamples> metricFamilySamples = [
+                new MetricFamilySamples(NAME, GAUGE, HELP, [sample1, sample2])]
 
         when:
             final Gauge gauge = new GaugeBuilder(NAME, HELP)

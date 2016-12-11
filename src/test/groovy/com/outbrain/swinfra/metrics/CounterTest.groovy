@@ -63,11 +63,10 @@ class CounterTest extends Specification {
         final String[] labelValues2 = ["val3", "val4"]
 
         given:
-        final List<Sample> samples1 = [new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), 5)]
-        final List<Sample> samples2 = [new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), 6)]
+        final Sample sample1 = new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), 5)
+        final Sample sample2 = new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), 6)
         final List<MetricFamilySamples> metricFamilySamples = [
-            new MetricFamilySamples(NAME, COUNTER, HELP, samples1),
-            new MetricFamilySamples(NAME, COUNTER, HELP, samples2)]
+            new MetricFamilySamples(NAME, COUNTER, HELP, [sample1, sample2])]
 
         when:
         final Counter counter = new CounterBuilder(NAME, HELP)

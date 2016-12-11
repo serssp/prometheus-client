@@ -10,6 +10,7 @@ import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,10 +66,12 @@ abstract class AbstractMetric<T extends Metric> {
   }
 
   List<MetricFamilySamples> getSamples(final SampleCreator sampleCreator) {
-    return childMetricRepo.all()
-                          .stream()
-                          .map(metricData -> toMetricFamilySamples(metricData, sampleCreator))
-                          .collect(Collectors.toList());
+    //todo make this return a single MetricFamilySamples object
+    final List<Sample> samples = childMetricRepo
+        .all().stream()
+        .flatMap(metricData -> createSamples(metricData, sampleCreator).stream())
+        .collect(Collectors.toList());
+    return Collections.singletonList(new MetricFamilySamples(name, getType(), help, samples));
   }
 
 }

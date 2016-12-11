@@ -34,7 +34,7 @@ class SummaryTest extends Specification {
                 new Sample(SUM_NAME, emptyList(), emptyList(), 0)
             ]
             final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME,SUMMARY , HELP, samples)
+                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
             ]
 
         when:
@@ -56,13 +56,13 @@ class SummaryTest extends Specification {
                 new Sample(COUNT_NAME, emptyList(), emptyList(), 1000),
                 new Sample(SUM_NAME, emptyList(), emptyList(), SUM_1_TO_1000)
             ]
-        final List<MetricFamilySamples> metricFamilySamples = [
-            new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
-        ]
+            final List<MetricFamilySamples> metricFamilySamples = [
+                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
+            ]
 
         when:
             final Summary summary = new SummaryBuilder(NAME, HELP).build();
-            1.upto(1000, {summary.observe(it)})
+            1.upto(1000, { summary.observe(it) })
 
         then:
             summary.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
@@ -89,7 +89,7 @@ class SummaryTest extends Specification {
 
         when:
             final Summary summary = new SummaryBuilder(NAME, HELP).build();
-            1.upto(1000, {summary.observe(it)})
+            1.upto(1000, { summary.observe(it) })
 
         then:
             summary.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
@@ -123,19 +123,23 @@ class SummaryTest extends Specification {
             ]
 
             final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME, SUMMARY, HELP, samples1),
-                new MetricFamilySamples(NAME, SUMMARY, HELP, samples2)
+                new MetricFamilySamples(NAME, SUMMARY, HELP, (samples1 + samples2) as List),
             ] as List<MetricFamilySamples>
 
         when:
             final Summary summary = new SummaryBuilder(NAME, HELP)
                 .withLabels(labelNames as String[])
                 .build();
-            1.upto(1000, {summary.observe(it, labelValues1 as String[])})
-            1.upto(1000, {summary.observe(it, labelValues2 as String[])})
+            1.upto(1000, { summary.observe(it, labelValues1 as String[]) })
+            1.upto(1000, { summary.observe(it, labelValues2 as String[]) })
 
         then:
-            summary.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
+            final MetricFamilySamples actualMetricFamilySamples = summary.getSamples(sampleCreator)[0]
+            final MetricFamilySamples expectedMetricFamileSamples = metricFamilySamples[0]
+            actualMetricFamilySamples.samples.sort() == expectedMetricFamileSamples.samples.sort()
+            actualMetricFamilySamples.name == expectedMetricFamileSamples.name
+            actualMetricFamilySamples.help == expectedMetricFamileSamples.help
+            actualMetricFamilySamples.type == expectedMetricFamileSamples.type
     }
 
     private static Sample sampleForQuantile(final String quantile, final double value) {
