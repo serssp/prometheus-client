@@ -30,7 +30,7 @@ public class MetricCollector extends Collector {
   public List<MetricFamilySamples> collect() {
     final List<MetricFamilySamples> result = new ArrayList<>(100);
     for (final AbstractMetric<?> metric : metricRegistry.all()) {
-      result.addAll(metric.getSamples(sampleCreator));
+      result.add(metric.getSample(sampleCreator));
     }
     return result;
   }

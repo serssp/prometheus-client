@@ -35,15 +35,13 @@ class TimerTest extends Specification {
                 new Sample(COUNT_NAME, emptyList(), emptyList(), 0),
                 new Sample(SUM_NAME, emptyList(), emptyList(), 0)
             ]
-            final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
-            ]
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
 
         when:
             final Timer timer = new Timer.TimerBuilder(NAME, HELP).build();
 
         then:
-            timer.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
+            timer.getSample(sampleCreator) == metricFamilySamples
     }
 
     def 'Timer should return correct samples for newly initialized metric with labels'() {
@@ -61,9 +59,7 @@ class TimerTest extends Specification {
                 new Sample(COUNT_NAME, labelNames, labelValues, 1000),
                 new Sample(SUM_NAME, labelNames, labelValues, SUM_1_TO_1000)
             ]
-            final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
-            ]
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
 
             final MyClock testClock = new MyClock()
         when:
@@ -80,7 +76,7 @@ class TimerTest extends Specification {
             })
 
         then:
-            timer.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
+            timer.getSample(sampleCreator) == metricFamilySamples
     }
 
     def 'Timer should return correct samples after 1000 measurements'() {
@@ -95,9 +91,7 @@ class TimerTest extends Specification {
                 new Sample(COUNT_NAME, emptyList(), emptyList(), 1000),
                 new Sample(SUM_NAME, emptyList(), emptyList(), SUM_1_TO_1000)
             ]
-            final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
-            ]
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
 
             final MyClock testClock = new MyClock()
 
@@ -115,7 +109,7 @@ class TimerTest extends Specification {
             })
 
         then:
-            timer.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
+            timer.getSample(sampleCreator) == metricFamilySamples
     }
 
     def 'Timer should return convert sample to requested units'() {
@@ -133,7 +127,7 @@ class TimerTest extends Specification {
             context.stop()
 
         then:
-            final Sample sumSample = timer.getSamples(sampleCreator)[0].samples.find {it.name.endsWith("sum")}
+            final Sample sumSample = timer.getSample(sampleCreator).samples.find {it.name.endsWith("sum")}
             sumSample.value == measurement
     }
 

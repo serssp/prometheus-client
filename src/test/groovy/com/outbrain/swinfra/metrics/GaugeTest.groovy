@@ -22,14 +22,14 @@ class GaugeTest extends Specification {
 
         given:
             final List<Sample> samples = [new Sample(NAME, [], [], expectedValue)]
-            final List<MetricFamilySamples> metricFamilySamples = [new MetricFamilySamples(NAME, GAUGE, HELP, samples)]
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, GAUGE, HELP, samples)
         when:
             final Gauge gauge = new GaugeBuilder(NAME, HELP)
                 .withValueSupplier({ expectedValue } as DoubleSupplier)
                 .build()
 
         then:
-            gauge.getSamples(sampleCreator) == metricFamilySamples;
+            gauge.getSample(sampleCreator) == metricFamilySamples;
     }
 
     def 'Gauge should return the correct samples with labels'() {
@@ -41,19 +41,18 @@ class GaugeTest extends Specification {
         given:
             final Sample sample1 = new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), expectedValue1)
             final Sample sample2 = new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), expectedValue2)
-            final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME, GAUGE, HELP, [sample1, sample2])]
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, GAUGE, HELP, [sample1, sample2])
 
         when:
             final Gauge gauge = new GaugeBuilder(NAME, HELP)
-            .withLabels(labelNames)
-            .withValueSupplier({ expectedValue1 } as DoubleSupplier, labelValues1)
-            .withValueSupplier({ expectedValue2 } as DoubleSupplier, labelValues2)
-            .build()
+                .withLabels(labelNames)
+                .withValueSupplier({ expectedValue1 } as DoubleSupplier, labelValues1)
+                .withValueSupplier({ expectedValue2 } as DoubleSupplier, labelValues2)
+                .build()
 
 
         then:
-            gauge.getSamples(sampleCreator).sort() == metricFamilySamples.sort();
+            gauge.getSample(sampleCreator) == metricFamilySamples
     }
 
     def 'GaugeBuilder should throw an exception on null value supplier'() {

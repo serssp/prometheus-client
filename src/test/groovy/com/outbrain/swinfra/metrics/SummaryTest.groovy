@@ -33,15 +33,13 @@ class SummaryTest extends Specification {
                 new Sample(COUNT_NAME, emptyList(), emptyList(), 0),
                 new Sample(SUM_NAME, emptyList(), emptyList(), 0)
             ]
-            final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
-            ]
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
 
         when:
             final Summary summary = new SummaryBuilder(NAME, HELP).build();
 
         then:
-            summary.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
+            summary.getSample(sampleCreator) == metricFamilySamples
     }
 
     def 'Summary with no labels should return correct samples after some measurements'() {
@@ -56,16 +54,14 @@ class SummaryTest extends Specification {
                 new Sample(COUNT_NAME, emptyList(), emptyList(), 1000),
                 new Sample(SUM_NAME, emptyList(), emptyList(), SUM_1_TO_1000)
             ]
-            final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
-            ]
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
 
         when:
             final Summary summary = new SummaryBuilder(NAME, HELP).build();
             1.upto(1000, { summary.observe(it) })
 
         then:
-            summary.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
+            summary.getSample(sampleCreator) == metricFamilySamples
     }
 
     def 'Summary with no labels and sampleCreator with labels should return correct samples after some measurements'() {
@@ -83,16 +79,14 @@ class SummaryTest extends Specification {
                 new Sample(COUNT_NAME, labelsMap.keySet() as List, labelsMap.values() as List, 1000),
                 new Sample(SUM_NAME, labelsMap.keySet() as List, labelsMap.values() as List, SUM_1_TO_1000)
             ]
-            final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
-            ]
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
 
         when:
             final Summary summary = new SummaryBuilder(NAME, HELP).build();
             1.upto(1000, { summary.observe(it) })
 
         then:
-            summary.getSamples(sampleCreator).sort() == metricFamilySamples.sort()
+            summary.getSample(sampleCreator) == metricFamilySamples
     }
 
     def 'Summary with labels should return correct samples after some measurements'() {
@@ -122,9 +116,7 @@ class SummaryTest extends Specification {
                 new Sample(SUM_NAME, labelNames, labelValues2, SUM_1_TO_1000)
             ]
 
-            final List<MetricFamilySamples> metricFamilySamples = [
-                new MetricFamilySamples(NAME, SUMMARY, HELP, (samples1 + samples2) as List),
-            ] as List<MetricFamilySamples>
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, (samples1 + samples2) as List)
 
         when:
             final Summary summary = new SummaryBuilder(NAME, HELP)
@@ -134,12 +126,11 @@ class SummaryTest extends Specification {
             1.upto(1000, { summary.observe(it, labelValues2 as String[]) })
 
         then:
-            final MetricFamilySamples actualMetricFamilySamples = summary.getSamples(sampleCreator)[0]
-            final MetricFamilySamples expectedMetricFamileSamples = metricFamilySamples[0]
-            actualMetricFamilySamples.samples.sort() == expectedMetricFamileSamples.samples.sort()
-            actualMetricFamilySamples.name == expectedMetricFamileSamples.name
-            actualMetricFamilySamples.help == expectedMetricFamileSamples.help
-            actualMetricFamilySamples.type == expectedMetricFamileSamples.type
+            final MetricFamilySamples actualMetricFamilySamples = summary.getSample(sampleCreator)
+            actualMetricFamilySamples.samples.sort() == metricFamilySamples.samples.sort()
+            actualMetricFamilySamples.name == metricFamilySamples.name
+            actualMetricFamilySamples.help == metricFamilySamples.help
+            actualMetricFamilySamples.type == metricFamilySamples.type
     }
 
     private static Sample sampleForQuantile(final String quantile, final double value) {

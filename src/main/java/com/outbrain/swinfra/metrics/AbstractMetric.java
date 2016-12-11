@@ -65,13 +65,12 @@ abstract class AbstractMetric<T extends Metric> {
     return childMetricRepo.metricForLabels(labelValues).getMetric();
   }
 
-  List<MetricFamilySamples> getSamples(final SampleCreator sampleCreator) {
-    //todo make this return a single MetricFamilySamples object
+  MetricFamilySamples getSample(final SampleCreator sampleCreator) {
     final List<Sample> samples = childMetricRepo
         .all().stream()
         .flatMap(metricData -> createSamples(metricData, sampleCreator).stream())
         .collect(Collectors.toList());
-    return Collections.singletonList(new MetricFamilySamples(name, getType(), help, samples));
+    return new MetricFamilySamples(name, getType(), help, samples);
   }
 
 }
