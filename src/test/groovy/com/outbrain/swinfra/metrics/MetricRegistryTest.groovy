@@ -11,7 +11,7 @@ class MetricRegistryTest extends Specification {
             final MetricRegistry registry = new MetricRegistry()
 
         then:
-            registry.all().size() == 0
+            registry.all().empty
     }
 
     def 'Metric registry should contain one metric when one is added'() {

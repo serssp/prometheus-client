@@ -13,8 +13,8 @@ class MetricCollectorTest extends Specification {
     final MetricCollector metricCollector = createMetricCollector()
 
     final List<MetricFamilySamples> samples = [
-        new MetricFamilySamples("Counter1", COUNTER, "help", [new Sample("Counter1", emptyList(), emptyList(), 0)]),
-        new MetricFamilySamples("Counter2", COUNTER, "help", [new Sample("Counter2", emptyList(), emptyList(), 0)])
+        new MetricFamilySamples("Counter1", COUNTER, "help", [new Sample("Counter1", [], [], 0)]),
+        new MetricFamilySamples("Counter2", COUNTER, "help", [new Sample("Counter2", [], [], 0)])
     ]
 
     def 'MetricCollector should return the correct samples when a metric is registered'() {

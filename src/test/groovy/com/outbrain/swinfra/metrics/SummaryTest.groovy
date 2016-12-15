@@ -8,56 +8,34 @@ import static com.outbrain.swinfra.metrics.Summary.SummaryBuilder
 import static io.prometheus.client.Collector.MetricFamilySamples
 import static io.prometheus.client.Collector.MetricFamilySamples.Sample
 import static io.prometheus.client.Collector.Type.SUMMARY
-import static java.util.Collections.emptyList
-import static java.util.Collections.singletonList
 
 class SummaryTest extends Specification {
 
-    private static final int SUM_1_TO_1000 = 500500
-    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator(Collections.emptyMap())
+    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator([:])
     private static final String NAME = "NAME"
     private static final String SUM_NAME = NAME + "_sum"
     private static final String COUNT_NAME = NAME + "_count"
     private static final String HELP = "HELP"
-    private static final List<String> QUANTILE_LABEL = singletonList("quantile")
+    private static final List<String> QUANTILE_LABEL = ["quantile"]
 
     def 'Summary with no labels should return correct samples for newly initialized metric'() {
         given:
-            final List<Sample> samples = [
-                sampleForQuantile("0.5", 0),
-                sampleForQuantile("0.75", 0),
-                sampleForQuantile("0.95", 0),
-                sampleForQuantile("0.98", 0),
-                sampleForQuantile("0.99", 0),
-                sampleForQuantile("0.999", 0),
-                new Sample(COUNT_NAME, emptyList(), emptyList(), 0),
-                new Sample(SUM_NAME, emptyList(), emptyList(), 0)
-            ]
+            final List<Sample> samples = generateSummarySamples([], [], 0)
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
 
         when:
-            final Summary summary = new SummaryBuilder(NAME, HELP).build();
-
+            final Summary summary = new SummaryBuilder(NAME, HELP).build()
         then:
             summary.getSample(sampleCreator) == metricFamilySamples
     }
 
     def 'Summary with no labels should return correct samples after some measurements'() {
         given:
-            final List<Sample> samples = [
-                sampleForQuantile("0.5", 500),
-                sampleForQuantile("0.75", 750),
-                sampleForQuantile("0.95", 950),
-                sampleForQuantile("0.98", 980),
-                sampleForQuantile("0.99", 990),
-                sampleForQuantile("0.999", 999),
-                new Sample(COUNT_NAME, emptyList(), emptyList(), 1000),
-                new Sample(SUM_NAME, emptyList(), emptyList(), SUM_1_TO_1000)
-            ]
+            final List<Sample> samples = generateSummarySamples([], [], 1000)
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
 
         when:
-            final Summary summary = new SummaryBuilder(NAME, HELP).build();
+            final Summary summary = new SummaryBuilder(NAME, HELP).build()
             1.upto(1000, { summary.observe(it) })
 
         then:
@@ -69,20 +47,11 @@ class SummaryTest extends Specification {
         final SampleCreator sampleCreator = new StaticLablesSampleCreator(labelsMap)
 
         given:
-            final List<Sample> samples = [
-                sampleForQuantile("0.5", 500, labelsMap.keySet() as List, labelsMap.values() as List),
-                sampleForQuantile("0.75", 750, labelsMap.keySet() as List, labelsMap.values() as List),
-                sampleForQuantile("0.95", 950, labelsMap.keySet() as List, labelsMap.values() as List),
-                sampleForQuantile("0.98", 980, labelsMap.keySet() as List, labelsMap.values() as List),
-                sampleForQuantile("0.99", 990, labelsMap.keySet() as List, labelsMap.values() as List),
-                sampleForQuantile("0.999", 999, labelsMap.keySet() as List, labelsMap.values() as List),
-                new Sample(COUNT_NAME, labelsMap.keySet() as List, labelsMap.values() as List, 1000),
-                new Sample(SUM_NAME, labelsMap.keySet() as List, labelsMap.values() as List, SUM_1_TO_1000)
-            ]
+            final List<Sample> samples = generateSummarySamples(labelsMap.keySet() as List, labelsMap.values() as List, 1000)
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
 
         when:
-            final Summary summary = new SummaryBuilder(NAME, HELP).build();
+            final Summary summary = new SummaryBuilder(NAME, HELP).build()
             1.upto(1000, { summary.observe(it) })
 
         then:
@@ -95,26 +64,8 @@ class SummaryTest extends Specification {
         final List<String> labelValues2 = ["value3", "value4"]
 
         given:
-            final List<Sample> samples1 = [
-                sampleForQuantile("0.5", 500, labelNames, labelValues1),
-                sampleForQuantile("0.75", 750, labelNames, labelValues1),
-                sampleForQuantile("0.95", 950, labelNames, labelValues1),
-                sampleForQuantile("0.98", 980, labelNames, labelValues1),
-                sampleForQuantile("0.99", 990, labelNames, labelValues1),
-                sampleForQuantile("0.999", 999, labelNames, labelValues1),
-                new Sample(COUNT_NAME, labelNames, labelValues1, 1000),
-                new Sample(SUM_NAME, labelNames, labelValues1, SUM_1_TO_1000)
-            ]
-            final List<Sample> samples2 = [
-                sampleForQuantile("0.5", 500, labelNames, labelValues2),
-                sampleForQuantile("0.75", 750, labelNames, labelValues2),
-                sampleForQuantile("0.95", 950, labelNames, labelValues2),
-                sampleForQuantile("0.98", 980, labelNames, labelValues2),
-                sampleForQuantile("0.99", 990, labelNames, labelValues2),
-                sampleForQuantile("0.999", 999, labelNames, labelValues2),
-                new Sample(COUNT_NAME, labelNames, labelValues2, 1000),
-                new Sample(SUM_NAME, labelNames, labelValues2, SUM_1_TO_1000)
-            ]
+            final List<Sample> samples1 = generateSummarySamples(labelNames, labelValues1, 1000)
+            final List<Sample> samples2 = generateSummarySamples(labelNames, labelValues2, 1000)
 
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, (samples1 + samples2) as List)
 
@@ -133,8 +84,17 @@ class SummaryTest extends Specification {
             actualMetricFamilySamples.type == metricFamilySamples.type
     }
 
-    private static Sample sampleForQuantile(final String quantile, final double value) {
-        return new Sample(NAME, QUANTILE_LABEL, [quantile], value)
+    private static List<Sample> generateSummarySamples(final List<String> labelNames, final List<String> labelValues, final int count) {
+        [
+                sampleForQuantile("0.5", count * 0.5, labelNames, labelValues),
+                sampleForQuantile("0.75", count * 0.75, labelNames, labelValues),
+                sampleForQuantile("0.95", count * 0.95, labelNames, labelValues),
+                sampleForQuantile("0.98", count * 0.98, labelNames, labelValues),
+                sampleForQuantile("0.99", count * 0.99, labelNames, labelValues),
+                sampleForQuantile("0.999", count * 0.999, labelNames, labelValues),
+                new Sample(COUNT_NAME, labelNames, labelValues, count),
+                new Sample(SUM_NAME, labelNames, labelValues, (0..count).sum() as int)
+        ]
     }
 
     private static Sample sampleForQuantile(final String quantile,

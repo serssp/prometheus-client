@@ -15,7 +15,7 @@ class GaugeTest extends Specification {
 
     private static final String NAME = "NAME"
     private static final String HELP = "HELP"
-    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator(Collections.emptyMap())
+    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator([:])
 
     def 'Gauge should return the correct samples without labels'() {
         final double expectedValue = 239487234
@@ -39,8 +39,8 @@ class GaugeTest extends Specification {
         final String[] labelValues2 = ["val2", "val3"]
         final double expectedValue2 = 181239813
         given:
-            final Sample sample1 = new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), expectedValue1)
-            final Sample sample2 = new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), expectedValue2)
+            final Sample sample1 = new Sample(NAME, labelNames as List, labelValues1 as List, expectedValue1)
+            final Sample sample2 = new Sample(NAME, labelNames as List, labelValues2 as List, expectedValue2)
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, GAUGE, HELP, [sample1, sample2])
 
         when:

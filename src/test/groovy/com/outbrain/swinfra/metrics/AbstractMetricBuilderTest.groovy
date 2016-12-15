@@ -27,7 +27,7 @@ class AbstractMetricBuilderTest extends Specification {
             "some name" | "some help" | ["label", "  "] | "Label"
     }
 
-    private class MyBuilder extends AbstractMetricBuilder {
+    private static class MyBuilder extends AbstractMetricBuilder {
 
         MyBuilder(final String name, final String help) {
             super(name, help)

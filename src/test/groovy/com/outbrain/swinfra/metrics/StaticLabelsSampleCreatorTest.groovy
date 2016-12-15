@@ -44,10 +44,7 @@ class StaticLabelsSampleCreatorTest extends Specification {
     }
 
     private static Map<String, String> createLabelsMap(final List<String> labelNames, final List<String> labelValues) {
-        final List<String> pairs = [labelNames, labelValues].transpose()
-        final Map<String, String> labelsMap = [:]
-        pairs.each {labelsMap << (it as MapEntry)}
-        return labelsMap
+        return [labelNames, labelValues].transpose().inject([:]) { acc, val -> acc << (val as MapEntry)}
     }
 
 }

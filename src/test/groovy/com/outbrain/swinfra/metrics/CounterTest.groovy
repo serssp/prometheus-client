@@ -15,7 +15,7 @@ class CounterTest extends Specification {
 
     private static final String NAME = "NAME"
     private static final String HELP = "HELP"
-    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator(Collections.emptyMap())
+    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator([:])
 
     @Unroll
     def 'Counter should return #expectedValue after incrementing #increment times'() {
@@ -83,7 +83,7 @@ class CounterTest extends Specification {
         final String fullName = subsystem + "_" + NAME
 
         given:
-            final List<Sample> samples = [new Sample(fullName, emptyList(), emptyList(), 0)]
+            final List<Sample> samples = [new Sample(fullName, [], [], 0)]
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(fullName, COUNTER, HELP, samples)
 
         when:
@@ -101,7 +101,7 @@ class CounterTest extends Specification {
         final String fullName = namespace + "_" + subsystem + "_" + NAME
 
         given:
-            final List<Sample> samples = [new Sample(fullName, emptyList(), emptyList(), 0)]
+            final List<Sample> samples = [new Sample(fullName, [], [], 0)]
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(fullName, COUNTER, HELP, samples)
 
         when:
@@ -119,7 +119,7 @@ class CounterTest extends Specification {
         final String fullName = namespace + "_" + NAME
 
         given:
-            final List<Sample> samples = [new Sample(fullName, emptyList(), emptyList(), 0)]
+            final List<Sample> samples = [new Sample(fullName, [], [], 0)]
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(fullName, COUNTER, HELP, samples)
 
         when:

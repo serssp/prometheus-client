@@ -16,7 +16,7 @@ import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabe
  */
 class MyTimer extends Timer {
 
-    private final MyClock clock;
+    private final MyClock clock
 
     public MyTimer(final String name,
                    final String help,
@@ -29,13 +29,13 @@ class MyTimer extends Timer {
 
     @Override
     ChildMetricRepo<com.codahale.metrics.Timer> createChildMetricRepo() {
-        if (getLabelNames().size() == 0) {
+        if (getLabelNames().empty) {
             return new UnlabeledChildRepo<>(new MetricData<>(createTimer(), [] as String[]))
         } else {
             return new LabeledChildrenRepo<>({ final commaDelimitedLabelValues ->
                 final String[] labelValues = commaDelimitedStringToLabels(commaDelimitedLabelValues)
                 return new MetricData<>(createTimer(), labelValues)
-            } as Function);
+            } as Function)
         }
     }
 
