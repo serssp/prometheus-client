@@ -18,13 +18,15 @@ class AbstractMetricBuilderTest extends Specification {
             final def ex = thrown Exception
             ex.message.contains(expectedInErrorMessage)
         where:
-            name        | help        | labels          | expectedInErrorMessage
-            null        | "some help" | null            | "name"
-            "   "       | "some help" | null            | "name"
-            "some name" | null        | null            | "help"
-            "some name" | "  "        | null            | "help"
-            "some name" | "some help" | ["label", null] | "Label"
-            "some name" | "some help" | ["label", "  "] | "Label"
+            name           | help        | labels                                     | expectedInErrorMessage
+            null           | "some help" | null                                       | "name"
+            "   "          | "some help" | null                                       | "name"
+            "some_name"    | null        | null                                       | "help"
+            "some_name"    | "  "        | null                                       | "help"
+            "some_name"    | "some help" | ["label", null]                            | "Label"
+            "some_name"    | "some help" | ["label", "  "]                            | "Label"
+            "invalid.name" | "some help" | ["label", "  "]                            | "The metric name invalid.name"
+            "some_name"    | "some help" | ["invalid.label", "another.invalid.label"] | "The label name invalid.label"
     }
 
     private static class MyBuilder extends AbstractMetricBuilder {

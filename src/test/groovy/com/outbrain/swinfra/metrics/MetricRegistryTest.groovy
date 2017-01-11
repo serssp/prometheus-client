@@ -35,7 +35,7 @@ class MetricRegistryTest extends Specification {
     }
 
     def 'Metric registry should return the already registered metric when attempting to register a metric with the same name and no labels'() {
-        final String metricName = "existing metric name"
+        final String metricName = "existing_metric_name"
 
         when:
             final MetricRegistry registry = new MetricRegistry()
@@ -47,7 +47,7 @@ class MetricRegistryTest extends Specification {
     }
 
     def 'Metric registry should return the already registered metric when attempting to register a metric with the same name labels'() {
-        final String metricName = "existing metric name"
+        final String metricName = "existing_metric_name"
         final String label = "myLabel"
 
         when:
@@ -60,7 +60,7 @@ class MetricRegistryTest extends Specification {
     }
 
     def 'Metric registry should register a metric with an existing name but different labels'() {
-        final String metricName = "existing metric name"
+        final String metricName = "existing_metric_name"
 
         when:
             final MetricRegistry registry = new MetricRegistry()
