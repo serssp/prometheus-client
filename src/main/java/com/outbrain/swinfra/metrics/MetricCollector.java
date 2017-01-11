@@ -5,6 +5,7 @@ import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator;
 import io.prometheus.client.Collector;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,8 +29,9 @@ public class MetricCollector extends Collector {
 
   @Override
   public List<MetricFamilySamples> collect() {
-    final List<MetricFamilySamples> result = new ArrayList<>(100);
-    for (final AbstractMetric<?> metric : metricRegistry.all()) {
+    final Collection<AbstractMetric<?>> allMetrics = metricRegistry.all();
+    final List<MetricFamilySamples> result = new ArrayList<>(allMetrics.size());
+    for (final AbstractMetric<?> metric : allMetrics) {
       result.add(metric.getSample(sampleCreator));
     }
     return result;
