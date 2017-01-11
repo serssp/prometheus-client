@@ -25,8 +25,8 @@ class AbstractMetricBuilderTest extends Specification {
             "some_name"    | "  "        | null                                       | "help"
             "some_name"    | "some help" | ["label", null]                            | "Label"
             "some_name"    | "some help" | ["label", "  "]                            | "Label"
-            "invalid.name" | "some help" | ["label", "  "]                            | "The metric name invalid.name"
-            "some_name"    | "some help" | ["invalid.label", "another.invalid.label"] | "The label name invalid.label"
+            "invalid.name" | "some help" | ["label", "  "]                            | "The metric name 'invalid.name'"
+            "some_name"    | "some help" | ["invalid.label", "another.invalid.label"] | "The label name 'invalid.label'"
     }
 
     private static class MyBuilder extends AbstractMetricBuilder {

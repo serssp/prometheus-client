@@ -58,13 +58,13 @@ public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends 
   private void validateLabels() {
     for (final String labelName : labelNames) {
       Validate.notBlank(labelName, "Label names must contain text");
-      Validate.isTrue(LABEL_NAME_PATTERN.matcher(labelName).matches(), "The label name " + labelName + " is invalid. See " + PROMETHEUS_NAMING_URL);
+      Validate.isTrue(LABEL_NAME_PATTERN.matcher(labelName).matches(), "The label name '" + labelName + "' is invalid. See " + PROMETHEUS_NAMING_URL);
     }
   }
 
   private void validateName(final String name) {
     Validate.notBlank(name, "The metric's name must contain text");
-    Validate.isTrue(METRIC_NAME_PATTERN.matcher(name).matches(), "The metric name " + name + " is invalid. See " + PROMETHEUS_NAMING_URL);
+    Validate.isTrue(METRIC_NAME_PATTERN.matcher(name).matches(), "The metric name '" + name + "' is invalid. See " + PROMETHEUS_NAMING_URL);
   }
 
   private String createFullName() {
