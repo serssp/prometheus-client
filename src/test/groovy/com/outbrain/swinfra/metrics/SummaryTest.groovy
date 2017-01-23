@@ -12,7 +12,7 @@ import static io.prometheus.client.Collector.Type.SUMMARY
 class SummaryTest extends Specification {
 
     private static final SampleCreator sampleCreator = new StaticLablesSampleCreator([:])
-    private static final String NAME = "NAME"
+    private static final String NAME = "mySummary"
     private static final String SUM_NAME = NAME + "_sum"
     private static final String COUNT_NAME = NAME + "_count"
     private static final String HELP = "HELP"
@@ -72,7 +72,7 @@ class SummaryTest extends Specification {
         when:
             final Summary summary = new SummaryBuilder(NAME, HELP)
                 .withLabels(labelNames as String[])
-                .build();
+                .build()
             1.upto(1000, { summary.observe(it, labelValues1 as String[]) })
             1.upto(1000, { summary.observe(it, labelValues2 as String[]) })
 
