@@ -107,7 +107,7 @@ public class Summary extends AbstractMetricWithQuantiles<Histogram> {
       return new Summary(fullName, help, labelNames, reservoir);
     }
 
-    private class ReservoirBuilder {
+    public class ReservoirBuilder {
 
       /**
        * Create this summary with an exponentially decaying reservoir - a reservoir that gives a lower
