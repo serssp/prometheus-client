@@ -1,11 +1,7 @@
 package com.outbrain.swinfra.metrics;
 
-import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Reservoir;
-import com.codahale.metrics.SlidingTimeWindowReservoir;
-import com.codahale.metrics.SlidingWindowReservoir;
-import com.codahale.metrics.UniformReservoir;
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
@@ -15,7 +11,6 @@ import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
@@ -85,75 +80,15 @@ public class Summary extends AbstractMetricWithQuantiles<Histogram> {
     return createSamplesFromSnapshot(metricData, 1, sampleCreator);
   }
 
-  public static class SummaryBuilder extends AbstractMetricBuilder<Summary, SummaryBuilder> {
-
-    private Supplier<Reservoir> reservoir = ExponentiallyDecayingReservoir::new;
+  public static class SummaryBuilder extends AbstractMetricBuilderWithReservoirs<Summary, SummaryBuilder> {
 
     public SummaryBuilder(final String name, final String help) {
       super(name, help);
     }
 
-    public ReservoirBuilder withReservoir() {
-      return new ReservoirBuilder();
-    }
-
-    private SummaryBuilder withReservoir(final Supplier<Reservoir> reservoirSupplier) {
-      this.reservoir = reservoirSupplier;
-      return this;
-    }
-
     @Override
     protected Summary create(final String fullName, final String help, final String[] labelNames) {
-      return new Summary(fullName, help, labelNames, reservoir);
-    }
-
-    public class ReservoirBuilder {
-
-      /**
-       * Create this summary with an exponentially decaying reservoir - a reservoir that gives a lower
-       * importance to older measurements.
-       *
-       * @param size  the size of the reservoir - the number of measurements that will be saved
-       * @param alpha the exponential decay factor. The higher this is the more biased the reservoir will
-       *              be towards newer measurements.
-       * @see <a href="http://dimacs.rutgers.edu/~graham/pubs/papers/fwddecay.pdf">
-       */
-      public SummaryBuilder withExponentiallyDecayingReservoir(final int size, final double alpha) {
-        return withReservoir(() -> new ExponentiallyDecayingReservoir(size, alpha));
-      }
-
-      /**
-       * Create this summary with a sliding time window reservoir. This reservoir keeps the measurements made in the
-       * last {@code window} seconds (or other time unit).
-       *
-       * @param window     the window to save
-       * @param windowUnit the window's time units
-       */
-      public SummaryBuilder withSlidingTimeWindowReservoir(final int window, final TimeUnit windowUnit) {
-        return withReservoir(() -> new SlidingTimeWindowReservoir(window, windowUnit));
-      }
-
-      /**
-       * Create this summary with a sliding window reservoir. This reservoir keeps a constant amount of the last
-       * measurements and is therefore memory-bound.
-       *
-       * @param size the number of measurements to save
-       */
-      public SummaryBuilder withSlidingWindowReservoir(final int size) {
-        return withReservoir(() -> new SlidingWindowReservoir(size));
-      }
-
-
-      /**
-       * Create this summary with a uniform reservoir - a reservoir that randomally saves the measurements and is
-       * statistically representative of all measurements.
-       *
-       * @param size the size of the reservoir - the number of measurements that will be saved
-       * @see <a href="http://www.cs.umd.edu/~samir/498/vitter.pdf">Random Sampling with a Reservoir</a>
-       */
-      public SummaryBuilder withUniformReservoir(final int size) {
-        return withReservoir(() -> new UniformReservoir(size));
-      }
+      return new Summary(fullName, help, labelNames, getReservoirSupplier());
     }
   }
 }

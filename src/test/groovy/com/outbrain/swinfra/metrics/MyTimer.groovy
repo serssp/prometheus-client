@@ -1,6 +1,7 @@
 package com.outbrain.swinfra.metrics
 
 import com.codahale.metrics.ExponentiallyDecayingReservoir
+import com.codahale.metrics.Reservoir
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo
 import com.outbrain.swinfra.metrics.children.MetricData
@@ -8,6 +9,7 @@ import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo
 
 import java.util.concurrent.TimeUnit
 import java.util.function.Function
+import java.util.function.Supplier
 
 import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels
 
@@ -18,12 +20,12 @@ class MyTimer extends Timer {
 
     private final MyClock clock
 
-    public MyTimer(final String name,
+    MyTimer(final String name,
                    final String help,
                    final MyClock myClock,
                    final List<String> labelNames = [],
                    final TimeUnit measureIn = TimeUnit.NANOSECONDS) {
-        super(name, help, labelNames as String[], measureIn)
+        super(name, help, labelNames as String[], measureIn, {new ExponentiallyDecayingReservoir()} as Supplier)
         this.clock = myClock
     }
 

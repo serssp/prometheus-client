@@ -75,7 +75,7 @@ public abstract class AbstractMetricBuilder<T extends AbstractMetric, B extends 
   }
 
   @SuppressWarnings("unchecked")
-  private B getThis() {
+  protected B getThis() {
     return (B) this;
   }
 }

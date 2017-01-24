@@ -71,6 +71,7 @@ class SummaryTest extends Specification {
 
         when:
             final Summary summary = new SummaryBuilder(NAME, HELP)
+                .withReservoir().withExponentiallyDecayingReservoir(1028, 0.15) //Use a "custom" reservoir just for the sake of having compilation error if this is not working
                 .withLabels(labelNames as String[])
                 .build()
             1.upto(1000, { summary.observe(it, labelValues1 as String[]) })

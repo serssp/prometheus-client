@@ -1,5 +1,6 @@
 package com.outbrain.swinfra.metrics;
 
+import com.codahale.metrics.Reservoir;
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
@@ -10,6 +11,7 @@ import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
 import static io.prometheus.client.Collector.Type.SUMMARY;
@@ -20,22 +22,32 @@ import static io.prometheus.client.Collector.Type.SUMMARY;
 public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Timer> {
 
   private final double measurementFactor;
+  private final Supplier<Reservoir> reservoirSupplier;
 
-  Timer(final String name, final String help, final String[] labelNames, final TimeUnit measurementUnit) {
+  Timer(final String name,
+        final String help,
+        final String[] labelNames,
+        final TimeUnit measurementUnit,
+        final Supplier<Reservoir> reservoirSupplier) {
     super(name, help, labelNames);
-    this.measurementFactor  = 1.0 / measurementUnit.toNanos(1); // if measurementUnit = milliseconds, then measurementUnit.toNanos(1) = 1000000
+    this.measurementFactor = 1.0 / measurementUnit.toNanos(1); // if measurementUnit = milliseconds, then measurementUnit.toNanos(1) = 1000000
+    this.reservoirSupplier = reservoirSupplier;
   }
 
   @Override
   ChildMetricRepo<com.codahale.metrics.Timer> createChildMetricRepo() {
     if (getLabelNames().size() == 0) {
-      return new UnlabeledChildRepo<>(new MetricData<>(new com.codahale.metrics.Timer(), new String[]{}));
+      return new UnlabeledChildRepo<>(new MetricData<>(createTimer(), new String[]{}));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
         final String[] labelValues = commaDelimitedStringToLabels(commaDelimitedLabelValues);
-        return new MetricData<>(new com.codahale.metrics.Timer(), labelValues);
+        return new MetricData<>(createTimer(), labelValues);
       });
     }
+  }
+
+  private com.codahale.metrics.Timer createTimer() {
+    return new com.codahale.metrics.Timer(reservoirSupplier.get());
   }
 
   @Override
@@ -70,7 +82,7 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
     }
   }
 
-  public static class TimerBuilder extends AbstractMetricBuilder<Timer, TimerBuilder> {
+  public static class TimerBuilder extends AbstractMetricBuilderWithReservoirs<Timer, TimerBuilder> {
 
     private TimeUnit measurementUnit = TimeUnit.NANOSECONDS;
 
@@ -84,7 +96,7 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
     }
 
     protected Timer create(final String fullName, final String help, final String[] labelNames) {
-      return new Timer(fullName, help, labelNames, measurementUnit);
+      return new Timer(fullName, help, labelNames, measurementUnit, getReservoirSupplier());
     }
   }
 }

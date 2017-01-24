@@ -36,7 +36,7 @@ class TimerTest extends Specification {
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
 
         when:
-            final Timer timer = new Timer.TimerBuilder(NAME, HELP).build();
+            final Timer timer = new Timer.TimerBuilder(NAME, HELP).build()
 
         then:
             timer.getSample(sampleCreator) == metricFamilySamples
