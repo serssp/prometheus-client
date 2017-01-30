@@ -92,7 +92,7 @@ public class Gauge extends AbstractMetric<CachedGauge<Double>> {
   }
 
   @Override
-  Collector.Type getType() {
+  public Collector.Type getType() {
     return GAUGE;
   }
 

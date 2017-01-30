@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-abstract class AbstractMetric<T extends Metric> {
+abstract class AbstractMetric<T extends Metric> implements com.outbrain.swinfra.metrics.Metric {
 
   private final String name;
   private final String help;
@@ -29,8 +29,6 @@ abstract class AbstractMetric<T extends Metric> {
   }
 
   abstract ChildMetricRepo<T> createChildMetricRepo();
-
-  abstract Collector.Type getType();
 
   abstract List<Sample> createSamples(MetricData<T> metricData, SampleCreator sampleCreator);
 
@@ -60,7 +58,8 @@ abstract class AbstractMetric<T extends Metric> {
     return childMetricRepo.metricForLabels(labelValues).getMetric();
   }
 
-  MetricFamilySamples getSample(final SampleCreator sampleCreator) {
+  @Override
+  public MetricFamilySamples getSample(final SampleCreator sampleCreator) {
     final List<Sample> samples = childMetricRepo
         .all().stream()
         .flatMap(metricData -> createSamples(metricData, sampleCreator).stream())

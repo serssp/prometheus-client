@@ -70,7 +70,7 @@ public class Summary extends AbstractMetricWithQuantiles<Histogram> {
   }
 
   @Override
-  Collector.Type getType() {
+  public Collector.Type getType() {
     return SUMMARY;
   }
 

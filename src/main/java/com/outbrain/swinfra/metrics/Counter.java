@@ -56,7 +56,7 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
   }
 
   @Override
-  Collector.Type getType() {
+  public Collector.Type getType() {
     return COUNTER;
   }
 

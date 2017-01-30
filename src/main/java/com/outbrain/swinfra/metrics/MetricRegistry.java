@@ -11,8 +11,8 @@ import static java.util.Objects.requireNonNull;
 
 public class MetricRegistry {
 
-  private final ConcurrentMap<String, AbstractMetric<?>> allMetrics = new ConcurrentHashMap<>(100);
-  private final Map<String, AbstractMetric<?>> allMetricsView = Collections.unmodifiableMap(allMetrics);
+  private final ConcurrentMap<String, Metric> allMetrics = new ConcurrentHashMap<>(100);
+  private final Map<String, Metric> allMetricsView = Collections.unmodifiableMap(allMetrics);
 
   /**
    * Registers a metric in this registry if it doesn't already exist, and returns the existing metric if the same
@@ -33,7 +33,7 @@ public class MetricRegistry {
     return metricName + labelNames.toString();
   }
 
-  Collection<AbstractMetric<?>> all() {
+  Collection<Metric> all() {
     return allMetricsView.values();
   }
 

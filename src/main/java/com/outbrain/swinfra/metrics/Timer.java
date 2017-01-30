@@ -51,7 +51,7 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
   }
 
   @Override
-  Collector.Type getType() {
+  public Collector.Type getType() {
     return SUMMARY;
   }
 
