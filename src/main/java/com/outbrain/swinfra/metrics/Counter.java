@@ -11,7 +11,7 @@ import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
 import java.util.List;
 
-import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
+import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
 import static io.prometheus.client.Collector.Type.COUNTER;
 import static java.util.Collections.singletonList;
 

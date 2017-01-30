@@ -1,4 +1,4 @@
-package com.outbrain.swinfra.metrics;
+package com.outbrain.swinfra.metrics.utils;
 
 import org.apache.commons.lang3.Validate;
 

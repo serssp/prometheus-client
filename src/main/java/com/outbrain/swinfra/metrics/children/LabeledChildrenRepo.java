@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
-import static com.outbrain.swinfra.metrics.LabelUtils.labelsToCommaDelimitedString;
+import static com.outbrain.swinfra.metrics.utils.LabelUtils.labelsToCommaDelimitedString;
 
 /**
  * A child metric container implementation for metrics that have labels.

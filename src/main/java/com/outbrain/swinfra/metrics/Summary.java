@@ -7,13 +7,14 @@ import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 import com.outbrain.swinfra.metrics.samples.SampleCreator;
+import com.outbrain.swinfra.metrics.utils.QuantileUtils;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
 import java.util.List;
 import java.util.function.Supplier;
 
-import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
+import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
 import static io.prometheus.client.Collector.Type.SUMMARY;
 
 /**
@@ -39,11 +40,14 @@ import static io.prometheus.client.Collector.Type.SUMMARY;
  * @see <a href="https://prometheus.io/docs/concepts/metric_types/#counter">Prometheus summary metric</a>
  * @see <a href="https://prometheus.io/docs/practices/histograms/">Prometheus summary vs. histogram</a>
  */
-public class Summary extends AbstractMetricWithQuantiles<Histogram> {
+public class Summary extends AbstractMetric<Histogram> {
 
   private final Supplier<Reservoir> reservoirSupplier;
 
-  private Summary(final String name, final String help, final String[] labelNames, final Supplier<Reservoir> reservoirSupplier) {
+  private Summary(final String name,
+                  final String help,
+                  final String[] labelNames,
+                  final Supplier<Reservoir> reservoirSupplier) {
     super(name, help, labelNames);
     this.reservoirSupplier = reservoirSupplier;
   }
@@ -77,7 +81,7 @@ public class Summary extends AbstractMetricWithQuantiles<Histogram> {
   @Override
   List<Sample> createSamples(final MetricData<Histogram> metricData,
                              final SampleCreator sampleCreator) {
-    return createSamplesFromSnapshot(metricData, 1, sampleCreator);
+    return QuantileUtils.createSamplesFromSnapshot(metricData, getName(), getLabelNames(), 1, sampleCreator);
   }
 
   public static class SummaryBuilder extends AbstractMetricBuilderWithReservoirs<Summary, SummaryBuilder> {

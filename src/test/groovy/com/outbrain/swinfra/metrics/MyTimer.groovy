@@ -1,7 +1,6 @@
 package com.outbrain.swinfra.metrics
 
 import com.codahale.metrics.ExponentiallyDecayingReservoir
-import com.codahale.metrics.Reservoir
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo
 import com.outbrain.swinfra.metrics.children.MetricData
@@ -11,7 +10,7 @@ import java.util.concurrent.TimeUnit
 import java.util.function.Function
 import java.util.function.Supplier
 
-import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels
+import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels
 
 /**
  * A custom timer implementation in order to be able to provide a custom clock which facilitates testing the timer

@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleSupplier;
 
-import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
-import static com.outbrain.swinfra.metrics.LabelUtils.labelsToCommaDelimitedString;
+import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
+import static com.outbrain.swinfra.metrics.utils.LabelUtils.labelsToCommaDelimitedString;
 import static io.prometheus.client.Collector.Type.GAUGE;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;

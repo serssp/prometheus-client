@@ -6,6 +6,7 @@ import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 import com.outbrain.swinfra.metrics.samples.SampleCreator;
+import com.outbrain.swinfra.metrics.utils.QuantileUtils;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 
@@ -13,13 +14,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import static com.outbrain.swinfra.metrics.LabelUtils.commaDelimitedStringToLabels;
+import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
 import static io.prometheus.client.Collector.Type.SUMMARY;
 
 /**
  * An implementation of a Timer metric. A timer measures events in milliseconds
  */
-public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Timer> {
+public class Timer extends AbstractMetric<com.codahale.metrics.Timer> {
 
   private final double measurementFactor;
   private final Supplier<Reservoir> reservoirSupplier;
@@ -58,7 +59,7 @@ public class Timer extends AbstractMetricWithQuantiles<com.codahale.metrics.Time
   @Override
   List<Sample> createSamples(final MetricData<com.codahale.metrics.Timer> metricData,
                              final SampleCreator sampleCreator) {
-    return createSamplesFromSnapshot(metricData, measurementFactor, sampleCreator);
+    return QuantileUtils.createSamplesFromSnapshot(metricData, getName(), getLabelNames(), measurementFactor, sampleCreator);
   }
 
   public TimerContext startTimer(final String... labelValues) {
