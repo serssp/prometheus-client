@@ -1,7 +1,5 @@
 package com.outbrain.swinfra.metrics.children;
 
-import com.codahale.metrics.Metric;
-
 import java.util.Collection;
 
 /**
@@ -9,7 +7,7 @@ import java.util.Collection;
  * Metrics are identified by their name along with their label values and so this container was created to
  * allow for an implementation of metrics that have labels dfined along those that don't.
  */
-public interface ChildMetricRepo<T extends Metric> {
+public interface ChildMetricRepo<T> {
   MetricData<T> metricForLabels(final String... labelValues);
   Collection<MetricData<T>> all();
 }

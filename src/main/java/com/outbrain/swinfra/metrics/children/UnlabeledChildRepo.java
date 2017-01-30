@@ -1,7 +1,5 @@
 package com.outbrain.swinfra.metrics.children;
 
-import com.codahale.metrics.Metric;
-
 import java.util.Collection;
 import java.util.Collections;
 
@@ -9,7 +7,7 @@ import java.util.Collections;
  * A child metric container implementation for metrics that do not have labels.
  * Such metrics by definition will have only one child.
  */
-public class UnlabeledChildRepo<T extends Metric> implements ChildMetricRepo<T> {
+public class UnlabeledChildRepo<T> implements ChildMetricRepo<T> {
 
   private final MetricData<T> metricData;
 

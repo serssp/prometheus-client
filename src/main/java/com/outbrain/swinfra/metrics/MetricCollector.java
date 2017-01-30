@@ -2,8 +2,7 @@ package com.outbrain.swinfra.metrics;
 
 import com.outbrain.swinfra.metrics.samples.SampleCreator;
 import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator;
-import io.prometheus.client.*;
-import io.prometheus.client.Gauge;
+import io.prometheus.client.Collector;
 
 import java.util.ArrayList;
 import java.util.Collection;

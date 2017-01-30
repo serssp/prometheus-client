@@ -1,10 +1,8 @@
 package com.outbrain.swinfra.metrics;
 
-import com.codahale.metrics.Metric;
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.samples.SampleCreator;
-import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 import org.apache.commons.lang3.Validate;
@@ -13,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-abstract class AbstractMetric<T extends Metric> implements com.outbrain.swinfra.metrics.Metric {
+abstract class AbstractMetric<T> implements Metric {
 
   private final String name;
   private final String help;

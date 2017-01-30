@@ -1,7 +1,5 @@
 package com.outbrain.swinfra.metrics.children;
 
-import com.codahale.metrics.Metric;
-
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -13,7 +11,7 @@ import static com.outbrain.swinfra.metrics.utils.LabelUtils.labelsToCommaDelimit
  * A child metric container implementation for metrics that have labels.
  * Such metrics can expect multiple children.
  */
-public class LabeledChildrenRepo<T extends Metric> implements ChildMetricRepo<T> {
+public class LabeledChildrenRepo<T> implements ChildMetricRepo<T> {
 
   private final ConcurrentMap<String, MetricData<T>> children = new ConcurrentHashMap<>();
   private final Function<String, MetricData<T>> mappingFunction;

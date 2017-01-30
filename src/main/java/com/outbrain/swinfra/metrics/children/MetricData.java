@@ -1,13 +1,11 @@
 package com.outbrain.swinfra.metrics.children;
 
-import com.codahale.metrics.Metric;
-
 import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
 
-public class MetricData<T extends Metric> {
+public class MetricData<T> {
   private final T metric;
   private final List<String> labelValues;
 
