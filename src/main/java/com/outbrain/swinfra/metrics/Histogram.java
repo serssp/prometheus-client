@@ -153,7 +153,7 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> {
 
     private double[] buckets = new double[]{};
 
-    HistogramBuilder(final String name, final String help) {
+    public HistogramBuilder(final String name, final String help) {
       super(name, help);
     }
 
