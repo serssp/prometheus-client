@@ -3,6 +3,7 @@ package com.outbrain.swinfra.metrics
 import com.outbrain.swinfra.metrics.samples.SampleCreator
 import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static com.outbrain.swinfra.metrics.Histogram.HistogramBuilder
 import static io.prometheus.client.Collector.MetricFamilySamples
@@ -14,7 +15,6 @@ class HistogramTest extends Specification {
     private static final SampleCreator sampleCreator = new StaticLablesSampleCreator([:])
     private static final String NAME = "myHisto"
     private static final String HELP = "HELP"
-    private static final String LAST_BUCKET_VALUE = "+Inf"
 
     def 'Histogram should return the correct type'() {
         given:
@@ -90,6 +90,22 @@ class HistogramTest extends Specification {
             actualMetricFamilySamples.name == metricFamilySamples.name
             actualMetricFamilySamples.help == metricFamilySamples.help
             actualMetricFamilySamples.type == metricFamilySamples.type
+    }
+
+    @Unroll
+    def "An attempt to create a Histogram with a bucket #bucket should throw an exception"() {
+        given:
+            final HistogramBuilder histogramBuilder = new HistogramBuilder(NAME, HELP)
+                .withBuckets(bucket)
+
+        when:
+            histogramBuilder.build()
+
+        then:
+            final IllegalArgumentException ex = thrown()
+
+        where:
+            bucket << [Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN]
     }
 
     /**

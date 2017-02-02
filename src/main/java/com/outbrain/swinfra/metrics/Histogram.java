@@ -6,6 +6,7 @@ import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 import com.outbrain.swinfra.metrics.samples.SampleCreator;
 import io.prometheus.client.Collector;
+import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +45,6 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> {
 
   @Override
   List<Sample> createSamples(final MetricData<Buckets> metricData, final SampleCreator sampleCreator) {
-    //todo use Collector.doubleToGoString?
     final BucketValues bucketValues = metricData.getMetric().getValues();
     final List<Sample> samples = new ArrayList<>(bucketValues.getBuckets().length + 2);
 
@@ -155,6 +155,17 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> {
 
     public HistogramBuilder(final String name, final String help) {
       super(name, help);
+    }
+
+    @Override
+    void validateParams() {
+      super.validateParams();
+      //Validate buckets all contain finite Double values
+      Arrays.stream(buckets).forEach(this::validateBucket);
+    }
+
+    private void validateBucket(final double bucket) {
+      Validate.isTrue(Double.isFinite(bucket), "NaN, POSITIVE_INFINITY and NETGATIVE_INFINITY are invalid bucket values");
     }
 
     public HistogramBuilder withBuckets(final double... buckets) {
