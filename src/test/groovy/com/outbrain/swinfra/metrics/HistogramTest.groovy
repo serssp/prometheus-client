@@ -108,6 +108,30 @@ class HistogramTest extends Specification {
             bucket << [Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN]
     }
 
+    def "A Histogram with equal width buckets with start: 0.5, width: 1; count: 1 should have exactly two buckets"() {
+        given:
+            final List<Sample> samples = generateHistogramSamples(["0.5": 0, "+Inf": 0], 0)
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, HISTOGRAM, HELP, samples)
+
+            final Histogram histogram = new HistogramBuilder(NAME, HELP).withEqualWidthBuckets(0.5, 1, 1).build()
+
+        expect:
+            histogram.getSample(sampleCreator) == metricFamilySamples
+    }
+
+    def "A Histogram with equal width buckets should return the correct buckets"() {
+        given:
+            final List<Sample> samples = generateHistogramSamples(["0.5": 0, "1.5": 0, "2.5": 0, "3.5": 0, "+Inf": 0], 0)
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, HISTOGRAM, HELP, samples)
+
+            final Histogram histogram = new HistogramBuilder(NAME, HELP).withEqualWidthBuckets(0.5, 1, 4).build()
+
+        expect:
+            histogram.getSample(sampleCreator) == metricFamilySamples
+    }
+
+//    def "A histogram with exponential buckets"
+
     /**
      *
      * @param eventsForBucket eventsForBucket - maps [bucket: numOfEvents]

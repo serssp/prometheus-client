@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.DoubleStream;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.addLabelToList;
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
@@ -168,9 +169,44 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> {
       Validate.isTrue(Double.isFinite(bucket), "NaN, POSITIVE_INFINITY and NETGATIVE_INFINITY are invalid bucket values");
     }
 
+    /**
+     * Creates the given buckets for the histogram. The <i>+Inf</i> bucket is always added so a histogram will
+     * always have at least one bucket.
+     * <p>
+     * Note that each bucket creates its own time-series so the cardinality limitation for labels,
+     * as recommended by Prometheus, also applies to the number of buckets
+     * </p>
+     *
+     * @param buckets the buckets to create
+     */
     public HistogramBuilder withBuckets(final double... buckets) {
       this.buckets = buckets;
       return this;
+    }
+
+    /**
+     * Creates equal width buckets for the histogram. If another method that also sets the buckets for the histogram
+     * will be called, like <i>withBuckets</i>, it will overwrite this method's buckets
+     * <p>
+     * Note that each bucket creates its own time-series so the cardinality limitation for labels,
+     * as recommended by Prometheus, also applies to the number of buckets
+     * </p>
+     *
+     * <p>
+     *   Here are two examples for what the method
+     *   <ul>
+     *     <li>withEqualWidthBuckets(0.5, 1, 1) - [0.5, +Inf]</li>
+     *     <li>withEqualWidthBuckets(0.5, 4, 1) - [0.5, 1.5, 2.5, 3.5, +Inf]</li>
+     *     <li>withEqualWidthBuckets(0.5, 100, 1) - Probably too many buckets</li>
+     *   </ul>
+     * </p>
+     *
+     * @param start the first bucket to create
+     * @param width the width between the buckets
+     * @param count the number of buckets to create
+     */
+    public HistogramBuilder withEqualWidthBuckets(final double start, final double width, final int count) {
+      return withBuckets(DoubleStream.iterate(start, d -> d + width).limit(count).toArray());
     }
 
     @Override
