@@ -25,6 +25,35 @@ import static io.prometheus.client.Collector.MetricFamilySamples.Sample;
 import static io.prometheus.client.Collector.Type.HISTOGRAM;
 
 //todo document the fact that I favored throughput over consistency
+
+/**
+ * An implementation of a bucket-based histogram. For this type of histogram measurements are assigned to all the buckets
+ * that have a value that is equal to or bigger than the measurements. All histograms have a bucket marked <i>+Inf</i>
+ * that will be assigned all measurements.
+ * <p>
+ * For example - if our histogram is initialized with the buckets 1, 5, 10 then here is how the measurements will be assigned:
+ * <table>
+ *   <tr>
+ *     <th>Measurement</th>
+ *     <th>Buckets</th>
+ *   </tr>
+ *   <tr>
+ *     <td>0.5</td>
+ *     <td>1, 5, 10, +Inf</td>
+ *   </tr>
+ *   <tr>
+ *     <td>6</td>
+ *     <td>10, +Inf</td>
+ *   </tr>
+ * </table>
+ * </p>
+ * <p>
+ *   If no buckets are provided the histogram will be initialized with the default values
+ *   {.005, .01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10}
+ * </p>
+ * @see <a href="https://prometheus.io/docs/concepts/metric_types/#histogram">Prometheus summary metric</a>
+ * @see <a href="https://prometheus.io/docs/practices/histograms/">Prometheus summary vs. histogram</a>
+ */
 public class Histogram extends AbstractMetric<Histogram.Buckets> implements TimingMetric {
 
   private static final String SAMPLE_NAME_BUCKET_SUFFIX = "_bucket";
@@ -168,7 +197,7 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> implements Timi
 
   public static class HistogramBuilder extends AbstractMetricBuilder<Histogram, HistogramBuilder> {
 
-    private double[] buckets = new double[]{};
+    private double[] buckets = new double[]{.005, .01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10};
     private Clock clock = DEFAULT_CLOCK;
 
     public HistogramBuilder(final String name, final String help) {

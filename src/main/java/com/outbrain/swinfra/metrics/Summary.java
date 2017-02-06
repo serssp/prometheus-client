@@ -40,7 +40,7 @@ import static io.prometheus.client.Collector.Type.SUMMARY;
  * </ul>
  * </p>
  *
- * @see <a href="https://prometheus.io/docs/concepts/metric_types/#counter">Prometheus summary metric</a>
+ * @see <a href="https://prometheus.io/docs/concepts/metric_types/#summary">Prometheus summary metric</a>
  * @see <a href="https://prometheus.io/docs/practices/histograms/">Prometheus summary vs. histogram</a>
  */
 public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
