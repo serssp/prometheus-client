@@ -25,9 +25,9 @@ class HistogramTest extends Specification {
             histogram.getType() == HISTOGRAM
     }
 
-    def 'Newly created histogram, with no specific buckets, should contain a single bucket'() {
+    def 'Newly created histogram, with no specific buckets, should contain the default buckets'() {
         given:
-            final List<Sample> samples = generateHistogramSamples(["+Inf": 0], 0)
+            final List<Sample> samples = generateHistogramSamples(["0.005": 0, "0.01": 0, "0.025": 0, "0.05": 0, "0.075": 0, "0.1": 0, "0.25": 0, "0.5": 0, "0.75": 0, "1.0": 0, "2.5": 0, "5.0": 0, "7.5": 0, "10.0": 0, "+Inf": 0], 0)
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, HISTOGRAM, HELP, samples)
 
             final Histogram histogram = new HistogramBuilder(NAME, HELP).build()
@@ -134,7 +134,7 @@ class HistogramTest extends Specification {
     def "A timer should add the measured samples to the histogram"() {
         final TestClock clock = new TestClock()
         given:
-            final List<Sample> samples = generateHistogramSamples(["1.5": 1, "2.5": 1, "+Inf":1], 6)
+            final List<Sample> samples = generateHistogramSamples(["1.5": 1, "2.5": 1, "+Inf": 1], 6)
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, HISTOGRAM, HELP, samples)
 
             final Histogram histogram = new HistogramBuilder(NAME, HELP).withClock(clock).withBuckets(1.5, 2.5).build()
