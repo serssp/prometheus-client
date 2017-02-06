@@ -2,6 +2,7 @@ package com.outbrain.swinfra.metrics
 
 import com.outbrain.swinfra.metrics.samples.SampleCreator
 import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator
+import com.outbrain.swinfra.metrics.timing.Timer
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -130,7 +131,25 @@ class HistogramTest extends Specification {
             histogram.getSample(sampleCreator) == metricFamilySamples
     }
 
-//    def "A histogram with exponential buckets"
+    def "A timer should add the measured samples to the histogram"() {
+        final TestClock clock = new TestClock()
+        given:
+            final List<Sample> samples = generateHistogramSamples(["1.5": 1, "2.5": 1, "+Inf":1], 6)
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, HISTOGRAM, HELP, samples)
+
+            final Histogram histogram = new HistogramBuilder(NAME, HELP).withClock(clock).withBuckets(1.5, 2.5).build()
+
+        when:
+            [1, 2, 3].each {
+                clock.setTick(0)
+                final Timer timer = histogram.startTimer()
+                clock.setTick(it)
+                timer.stop()
+            }
+
+        then:
+            histogram.getSample(sampleCreator) == metricFamilySamples
+    }
 
     /**
      *

@@ -5,6 +5,9 @@ import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 import com.outbrain.swinfra.metrics.samples.SampleCreator;
+import com.outbrain.swinfra.metrics.timing.Clock;
+import com.outbrain.swinfra.metrics.timing.Timer;
+import com.outbrain.swinfra.metrics.timing.TimingMetric;
 import io.prometheus.client.Collector;
 import org.apache.commons.lang3.Validate;
 
@@ -15,21 +18,28 @@ import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.DoubleStream;
 
+import static com.outbrain.swinfra.metrics.timing.Clock.DEFAULT_CLOCK;
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.addLabelToList;
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
 import static io.prometheus.client.Collector.MetricFamilySamples.Sample;
 import static io.prometheus.client.Collector.Type.HISTOGRAM;
 
 //todo document the fact that I favored throughput over consistency
-public class Histogram extends AbstractMetric<Histogram.Buckets> {
+public class Histogram extends AbstractMetric<Histogram.Buckets> implements TimingMetric {
 
   private static final String SAMPLE_NAME_BUCKET_SUFFIX = "_bucket";
   private static final String BUCKET_LABEL = "le";
   private final double[] buckets;
+  private final Clock clock;
 
-  private Histogram(final String name, final String help, final String[] labelNames, final double[] buckets) {
+  private Histogram(final String name,
+                    final String help,
+                    final String[] labelNames,
+                    final double[] buckets,
+                    final Clock clock) {
     super(name, help, labelNames);
     this.buckets = buckets;
+    this.clock = clock;
   }
 
   @Override
@@ -78,6 +88,12 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> {
 
   public void observe(final double value, final String... labelValues) {
     metricForLabels(labelValues).add(value);
+  }
+
+  @Override
+  public Timer startTimer(final String... labelValues) {
+    final Buckets buckets = metricForLabels(labelValues);
+    return new Timer(clock, buckets::add);
   }
 
   /**
@@ -153,6 +169,7 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> {
   public static class HistogramBuilder extends AbstractMetricBuilder<Histogram, HistogramBuilder> {
 
     private double[] buckets = new double[]{};
+    private Clock clock = DEFAULT_CLOCK;
 
     public HistogramBuilder(final String name, final String help) {
       super(name, help);
@@ -209,9 +226,14 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> {
       return withBuckets(DoubleStream.iterate(start, d -> d + width).limit(count).toArray());
     }
 
+    public HistogramBuilder withClock(final Clock clock) {
+      this.clock = clock;
+      return this;
+    }
+
     @Override
     protected Histogram create(final String fullName, final String help, final String[] labelNames) {
-      return new Histogram(fullName, help, labelNames, buckets);
+      return new Histogram(fullName, help, labelNames, buckets, clock);
     }
 
   }

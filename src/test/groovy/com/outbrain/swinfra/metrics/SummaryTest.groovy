@@ -85,6 +85,28 @@ class SummaryTest extends Specification {
             actualMetricFamilySamples.type == metricFamilySamples.type
     }
 
+    def 'Timer should add one sample for each time it is started and then stopped'() {
+        final TestClock clock = new TestClock()
+
+        given:
+            final List<Sample> samples = generateSummarySamples([], [], 1000)
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
+
+            final Summary summary = new SummaryBuilder(NAME, HELP).withClock(clock).build()
+
+        when:
+            //Make a 1000 measurements with values 1, 2, 3, ... 1000
+            1.upto(1000, {
+                clock.setTick(0)
+                final com.outbrain.swinfra.metrics.timing.Timer timer = summary.startTimer()
+                clock.setTick(it)
+                timer.stop()
+            })
+
+        then:
+            summary.getSample(sampleCreator) == metricFamilySamples
+    }
+
     private static List<Sample> generateSummarySamples(final List<String> labelNames, final List<String> labelValues, final int count) {
         [
                 sampleForQuantile("0.5", count * 0.5, labelNames, labelValues),
