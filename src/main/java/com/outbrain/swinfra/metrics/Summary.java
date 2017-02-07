@@ -92,7 +92,7 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
   @Override
   List<Sample> createSamples(final MetricData<Histogram> metricData,
                              final SampleCreator sampleCreator) {
-    return QuantileUtils.createSamplesFromSnapshot(metricData, getName(), getLabelNames(), 1, sampleCreator);
+    return QuantileUtils.createSamplesFromSnapshot(metricData, getName(), getLabelNames(), sampleCreator);
   }
 
   @Override

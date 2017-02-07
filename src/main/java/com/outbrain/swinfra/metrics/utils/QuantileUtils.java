@@ -20,7 +20,6 @@ public class QuantileUtils {
   public static <T extends Counting & Sampling & Metric> List<Sample> createSamplesFromSnapshot(final MetricData<T> metricData,
                                                                                                 final String name,
                                                                                                 final List<String> labelNames,
-                                                                                                final double measurementFactor,
                                                                                                 final SampleCreator sampleCreator) {
     final Snapshot snapshot = metricData.getMetric().getSnapshot();
     final List<String> labelValues = metricData.getLabelValues();
@@ -33,14 +32,14 @@ public class QuantileUtils {
     }
 
     return Arrays.asList(
-      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.5"), snapshot.getMedian() * measurementFactor),
-      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.75"), snapshot.get75thPercentile() * measurementFactor),
-      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.95"), snapshot.get95thPercentile() * measurementFactor),
-      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.98"), snapshot.get98thPercentile() * measurementFactor),
-      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.99"), snapshot.get99thPercentile() * measurementFactor),
-      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.999"), snapshot.get999thPercentile() * measurementFactor),
+      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.5"), snapshot.getMedian()),
+      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.75"), snapshot.get75thPercentile()),
+      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.95"), snapshot.get95thPercentile()),
+      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.98"), snapshot.get98thPercentile()),
+      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.99"), snapshot.get99thPercentile()),
+      sampleCreator.createSample(name, labels, addLabelToList(labelValues, "0.999"), snapshot.get999thPercentile()),
       sampleCreator.createSample(name + "_count", labelNames, labelValues, metricData.getMetric().getCount()),
-      sampleCreator.createSample(name + "_sum", labelNames, labelValues, sum * measurementFactor)
+      sampleCreator.createSample(name + "_sum", labelNames, labelValues, sum)
     );
   }
 
