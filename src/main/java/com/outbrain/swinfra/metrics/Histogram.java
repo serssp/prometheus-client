@@ -168,16 +168,19 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> implements Timi
       final long[] cummulativeBuckets = new long[this.buckets.length];
       long accumulator = 0;
 
+      //Saving a snapshot of the sum so it will not be affected by values added while the buckets are calculated
+      final double sumSnapshot = sum.sum();
+
       for (int i = 0; i < buckets.length; i++) {
         accumulator += buckets[i].sum();
         cummulativeBuckets[i] = accumulator;
       }
 
-      return new BucketValues(this.sum.sum(), cummulativeBuckets);
+      return new BucketValues(sumSnapshot, cummulativeBuckets);
     }
   }
 
-  static class BucketValues {
+  private static class BucketValues {
     private final double sum;
     private final long[] buckets;
 
