@@ -10,8 +10,8 @@ class TimerTest extends Specification {
     private final TestClock clock = new TestClock()
     private final SummingLongConsumer consumer = new SummingLongConsumer()
 
-    def 'Timer should emit one value when started and stopped'() {
-        final long tick = 1
+    def 'Timer should emit the correct value when started and stopped'() {
+        final long tick = 10
 
         given:
             final Timer timer = new Timer(clock, consumer)
