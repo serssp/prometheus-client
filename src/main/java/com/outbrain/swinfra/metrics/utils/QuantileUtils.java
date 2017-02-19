@@ -17,6 +17,16 @@ public class QuantileUtils {
 
   private static final String QUANTILE_LABEL = "quantile";
 
+  /**
+   * Extract Prometheus {@link Sample} objects from a DropWizard metric that contains a {@link Snapshot} object - these
+   * will be metrics implementing the {@link Sampling} interface
+   *
+   * @param metricData    the metric data object
+   * @param name          the metric name
+   * @param labelNames    the label names to add to all samples
+   * @param sampleCreator the sample creator
+   * @param <T>           the type of the DropWizard metric
+   */
   public static <T extends Counting & Sampling & Metric> List<Sample> createSamplesFromSnapshot(final MetricData<T> metricData,
                                                                                                 final String name,
                                                                                                 final List<String> labelNames,

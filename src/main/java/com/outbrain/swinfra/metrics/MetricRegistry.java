@@ -18,8 +18,17 @@ public class MetricRegistry {
    * Registers a metric in this registry if it doesn't already exist, and returns the existing metric if the same
    * metric already exists.
    * <p>
-   *   A metric already exists if a metric with the same name and label names was already registered in this registry
+   * A metric already exists if a metric with the same name and label names was already registered in this registry
    * </p>
+   * <p>
+   * If an attempt to register two metrics with the same name an labels , but different types, is made then an
+   * exception will be thrown. Like so:
+   * </p>
+   * <pre>
+   * final Counter counter = registry.getOrRegister(new Counter.CounterBuilder(<b>"name"</b>, "help").build());
+   * final Summary summary = registry.getOrRegister(new Summary.SummaryBuilder(<b>"name"</b>, "help").build());
+   * </pre>
+   *
    * @throws IllegalArgumentException if a metric with the same name was already registered
    */
   @SuppressWarnings("unchecked")

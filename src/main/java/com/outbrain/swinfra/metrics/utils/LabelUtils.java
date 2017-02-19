@@ -7,10 +7,16 @@ import java.util.List;
 
 public class LabelUtils {
 
+  /**
+   * Convert an array of strings into a single comma-separated string
+   */
   public static String labelsToCommaDelimitedString(final String... labels) {
     return String.join(",", (CharSequence[]) labels);
   }
 
+  /**
+   * Convert a comma-separated string into an array of strings
+   */
   public static String[] commaDelimitedStringToLabels(final String commaDelimitedLabels) {
     Validate.notBlank(commaDelimitedLabels, "commaDelimitedLabels must not be empty");
     return commaDelimitedLabels.split(",");

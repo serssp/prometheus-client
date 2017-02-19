@@ -7,6 +7,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A {@link SampleCreator} that adds statically configured labels to all metrics on top of the labels the metric itself
+ * has defined
+ */
 public class StaticLablesSampleCreator implements SampleCreator {
 
   private final List<String> staticLabelNames;

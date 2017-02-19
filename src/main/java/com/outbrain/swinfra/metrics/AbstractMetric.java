@@ -11,6 +11,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * A base class for all the metrics.
+ * This class contains logic related to child metrics, labels etc.
+ * @param <T> the type of the wrapped metric
+ */
 abstract class AbstractMetric<T> implements Metric {
 
   private final String name;
