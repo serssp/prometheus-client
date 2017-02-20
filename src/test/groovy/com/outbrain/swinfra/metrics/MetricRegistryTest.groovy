@@ -20,7 +20,7 @@ class MetricRegistryTest extends Specification {
             final Counter counter = registry.getOrRegister(new CounterBuilder("name", "help").build())
 
         then:
-            registry.all().toList().sort() == [counter]
+            registry.all().toList() == [counter]
     }
 
     def 'Metric registry should contain three metric when three are added'() {

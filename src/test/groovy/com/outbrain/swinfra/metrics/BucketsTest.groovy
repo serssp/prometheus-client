@@ -3,8 +3,8 @@ package com.outbrain.swinfra.metrics
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static com.outbrain.swinfra.metrics.Histogram.Buckets
 import static com.outbrain.swinfra.metrics.Histogram.BucketValues
+import static com.outbrain.swinfra.metrics.Histogram.Buckets
 
 class BucketsTest extends Specification {
 
@@ -34,17 +34,15 @@ class BucketsTest extends Specification {
     }
 
     @Unroll
-    def 'Buckets should contain the correct sum and number of events after several observations'() {
+    def 'Buckets should contain the correct sum and number of events after observations #observations'() {
         given:
             final Buckets buckets = new Buckets()
 
         when:
             observations.each {buckets.add(it)}
-
         then:
-            final BucketValues values = buckets.getValues()
-            values.sum == observations.sum() as double
-            values.buckets[0] == observations.size() as long
+            buckets.values.sum == observations.sum() as double
+            buckets.values.buckets[0] == observations.size() as long
 
         where:
             observations << [
@@ -55,7 +53,7 @@ class BucketsTest extends Specification {
     }
 
     @Unroll
-    def 'Buckets should contain the correct sum and number of events after several observations and with several buckets'() {
+    def 'Buckets should contain the correct sum and number of events after observations #observations and buckets #bucketEvents'() {
         given:
             final Buckets buckets = new Buckets(1, 10, 100)
 
@@ -63,12 +61,12 @@ class BucketsTest extends Specification {
             observations.each {buckets.add(it)}
 
         then:
-            final BucketValues valuest = buckets.getValues()
-            valuest.sum == observations.sum() as double
-            valuest.buckets[0] == bucketEvents[0] as long
-            valuest.buckets[1] == bucketEvents[1] as long
-            valuest.buckets[2] == bucketEvents[2] as long
-            valuest.buckets[3] == bucketEvents[3] as long
+
+            buckets.values.sum == observations.sum() as double
+            buckets.values.buckets[0] == bucketEvents[0] as long
+            buckets.values.buckets[1] == bucketEvents[1] as long
+            buckets.values.buckets[2] == bucketEvents[2] as long
+            buckets.values.buckets[3] == bucketEvents[3] as long
 
         where:
             observations               | bucketEvents

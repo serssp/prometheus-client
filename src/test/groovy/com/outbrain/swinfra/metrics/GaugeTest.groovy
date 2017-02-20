@@ -33,16 +33,12 @@ class GaugeTest extends Specification {
     }
 
     def 'Gauge should return the correct samples with labels'() {
-        final String[] labelNames = ["label1", "label2"]
-        final String[] labelValues1 = ["val1", "val2"]
-        final double expectedValue1 = 239487
-        final String[] labelValues2 = ["val2", "val3"]
-        final double expectedValue2 = 181239813
         given:
-            final Sample sample1 = new Sample(NAME, labelNames as List, labelValues1 as List, expectedValue1)
-            final Sample sample2 = new Sample(NAME, labelNames as List, labelValues2 as List, expectedValue2)
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, GAUGE, HELP, [sample1, sample2])
-
+            final String[] labelNames = ["label1", "label2"]
+            final String[] labelValues1 = ["val1", "val2"]
+            final double expectedValue1 = 239487
+            final String[] labelValues2 = ["val2", "val3"]
+            final double expectedValue2 = 181239813
         when:
             final Gauge gauge = new GaugeBuilder(NAME, HELP)
                 .withLabels(labelNames)
@@ -52,7 +48,10 @@ class GaugeTest extends Specification {
 
 
         then:
-            gauge.getSample(sampleCreator) == metricFamilySamples
+            gauge.getSample(sampleCreator) ==
+                    new MetricFamilySamples(NAME, GAUGE, HELP,
+                            [new Sample(NAME, labelNames as List, labelValues1 as List, expectedValue1),
+                             new Sample(NAME, labelNames as List, labelValues2 as List, expectedValue2)])
     }
 
     def 'GaugeBuilder should throw an exception on null value supplier'() {
@@ -62,7 +61,7 @@ class GaugeTest extends Specification {
                 .build()
 
         then:
-            final NullPointerException ex = thrown()
+            def ex = thrown NullPointerException
             ex.message.contains("value supplier")
     }
 
@@ -74,7 +73,7 @@ class GaugeTest extends Specification {
                 .build()
 
         then:
-            final IllegalArgumentException ex = thrown()
+            def ex = thrown IllegalArgumentException
             ex.message.contains("does not contain the expected amount 2")
     }
 
@@ -86,7 +85,7 @@ class GaugeTest extends Specification {
                 .build()
 
         then:
-            final IllegalArgumentException ex = thrown()
+            def ex = thrown IllegalArgumentException
             ex.message.contains("does not contain the expected amount 2")
     }
 }

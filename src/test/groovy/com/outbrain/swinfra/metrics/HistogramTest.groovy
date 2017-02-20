@@ -103,7 +103,7 @@ class HistogramTest extends Specification {
             histogramBuilder.build()
 
         then:
-            final IllegalArgumentException ex = thrown()
+            thrown IllegalArgumentException
 
         where:
             bucket << [Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN]
