@@ -29,7 +29,7 @@ class GaugeTest extends Specification {
                 .build()
 
         then:
-            gauge.getSample(sampleCreator) == metricFamilySamples;
+            gauge.getSample(sampleCreator) == metricFamilySamples
     }
 
     def 'Gauge should return the correct samples with labels'() {
