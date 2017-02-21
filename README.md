@@ -1,6 +1,22 @@
 #Prometheus Client
 This library is a java client for Prometheus, it implements all 4 Prometheus metrics - Counter, Gauge, Summary and Histogram.
 
+##Table of Contents
+* [Background](#background)
+* [Getting Started](#getting-started)
+* [Measuring](#measuring)
+    * [Registering a Metric](#registering-a-metric)
+    * [Counter](#counter)
+    * [Gauge](#gauge)
+    * [Summary](#summary)
+    * [Histogram](#histogram)
+    * [Timer](#timer)
+* [Advanced Usage](#advanced-usage)
+    * [Gauge](#gauge---advanced)
+    * [Summary](#summary---advanced)
+    * [Histogram](#histogram---advanced)
+    * [Timer](#timer---advanced)
+
 ##Background
 When we first started using Prometheus we looked for a client to suite us. Unfortunately Prometheus' own
 java client is riddled with *synchronized* methods (See the *CKMSQuantiles* class).
@@ -12,6 +28,7 @@ a bucket-based histogram.
 ##Getting Started
 Add a maven/gradle dependency:
 
+**Maven**
 ```xml
 <dependency>
     <groupId>com.outbrain.swinfra</groupId>
@@ -19,13 +36,15 @@ Add a maven/gradle dependency:
     <version>???</version>
 </dependency>
 ```
+
+**Gradle**
 ```
 com.outbrain.swinfra:prometheus-client:???
 ```
 
 ##Measuring
 
-###Registering a metric
+###Registering a Metric
 All metrics should be stored inside a MetricRegistry. The registry is a collection that contains all of
 your metric objects and performs validation that no two metrics exist with the same name.
 ```java
@@ -83,7 +102,7 @@ Histogram histogram = registry.getOrRegister(new HistogramBuilder(NAME, HELP).wi
 histogram.observe(10, "value1");
 ```
 
-###Timers
+###Timer
 ```java
 //A Summary timer
 Summary summaryTimer = registry.getOrRegister(new SummaryBuilder(NAME, HELP).build());
@@ -114,7 +133,7 @@ CollectorRegistry.defaultRegistry.register(collector);
 ```
 
 ##Advanced Usage
-###Gauge
+###Gauge - Advanced
 ```java
 registry.getOrRegister(new GaugeBuilder("name", "help").withLabels("label1")
                                                        .withValueSupplier(() -> 1, "value1")
@@ -124,7 +143,7 @@ registry.getOrRegister(new GaugeBuilder("name", "help").withLabels("label1")
                                                        .build());
 ```
 
-###Summary
+###Summary - Advanced
 The *Summary* metric support the different types of reservoirs that DropWizard supports. They can be used like so:
 
 The default reservoir is the exponentially decaying reservoir.
@@ -134,7 +153,7 @@ Summary summary = registry.getOrRegister(new SummaryBuilder("name", "help").with
                                                  .build());
 ```
 
-###Histograms
+###Histogram - Advanced
 The *Histogram* can be configured with custom buckets or with equal width buckets at a given range.
 ```java
 //Custom buckets
@@ -148,7 +167,7 @@ Histogram histo = registry.getOrRegister(new HistogramBuilder("name", "help").wi
                                                                              .build());
 ```
 
-###Timers
+###Timer - Advanced
 The *Timer* supports custom clocks, with the default being the system clock which measures intervals
 according to *System.nanoTime()*.
 
