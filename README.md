@@ -24,17 +24,23 @@ com.outbrain.swinfra:prometheus-client:???
 ```
 
 ##Measuring
-Here are some simple examples for the usage of all four types of metrics 
+
+###Registering a metric
+All metrics should be stored inside a MetricRegistry. The registry is a collection that contains all of
+your metric objects and performs validation that no two metrics exist with the same name.
+```java
+MetricRegistry registry = new MetricRegistry();
+```
 
 ###Counter
 ```java
 //No labels
-Counter counter = new CounterBuilder("name", "help").build();
+Counter counter = registry.getOrRegister(new CounterBuilder("name", "help").build());
 counter.inc();
 
 //With labels
-Counter counter = new CounterBuilder("name", "help").withLabels("label1")
-                                                    .build();
+Counter counter = registry.getOrRegister(new CounterBuilder("name", "help").withLabels("label1")
+                                                                           .build());
 counter.inc("value1");
 ```
 
@@ -45,64 +51,60 @@ This is a gauge that always returns the value "1".
 Note that for gauges the label values are determined statically.
 ```java
 //No labels
-Gauge gauge = new GaugeBuilder("name", "help").withValueSupplier(() -> 1d).build();
+registry.getOrRegister(new GaugeBuilder("name", "help").withValueSupplier(() -> 1d).build());
 
 //With labels
-Gauge gauge = new GaugeBuilder("name", "help").withLabels("label1")
-                                              .withValueSupplier(() -> 1d, "value1")
-                                              .build();
+registry.getOrRegister(new GaugeBuilder("name", "help").withLabels("label1")
+                                                       .withValueSupplier(() -> 1d, "value1")
+                                                       .build());
 ```
 
 ###Summary
 ```java
 //No labels
-Summary summary = new SummaryBuilder(NAME, HELP).build();
+Summary summary = registry.getOrRegister(new SummaryBuilder(NAME, HELP).build());
 summary.observe(10);
 
 //With labels
-Summary summary = new SummaryBuilder(NAME, HELP).withLabels("label1")
-                                                .build();
+Summary summary = registry.getOrRegister(new SummaryBuilder(NAME, HELP).withLabels("label1")
+                                                                       .build());
 summary.observe(10, "value1");
 ```
 
 ###Histogram
 ```java
 //No labels
-Histogram histogram = new HistogramBuilder(NAME, HELP).build()
+Histogram histogram = registry.getOrRegister(new HistogramBuilder(NAME, HELP).build());
 histogram.observe(10);
 
 //With labels
-Histogram histogram = new HistogramBuilder(NAME, HELP).withLabels("label1")
-                                                      .build()
+Histogram histogram = registry.getOrRegister(new HistogramBuilder(NAME, HELP).withLabels("label1")
+                                                                             .build());
 histogram.observe(10, "value1");
 ```
 
 ###Timers
 ```java
 //A Summary timer
-Summary summaryTimer = new SummaryBuilder(NAME, HELP).build();
+Summary summaryTimer = registry.getOrRegister(new SummaryBuilder(NAME, HELP).build());
 Timer timer = summaeryTimer.startTimer();
 //run some code
 timer.stop();
 
 //A Histogram timer
-Summary histTimer = new HistogramBuilder(NAME, HELP).build();
+Summary histTimer = registry.getOrRegister(new HistogramBuilder(NAME, HELP).build());
 Timer timer = histTimer.startTimer();
 //run some code
 timer.stop();
 ```
 
-##Reporting to Prometheus
+###Reporting to Prometheus
 Prometheus uses the *Collector* class to allow a process to expose its metrics. This client implements
 a Prometheus *Collector* that serves exactly this purpose. The *MetricCollector* class is instantiated with
 a *MetricRegistry*.
 
 ```java
-//Register all your metrics in a MetricRegistry
-MetricRegistry registry = new MetricRegistry();
-Counter counter = registry.getOrRegister(new CounterBuilder("name", "help").build());
-
-//Create a MetricCollector
+//Create a MetricCollector and pass your *MetricRegistry* to it
 MetricCollector collector = new MetricCollector(registry);
 
 //The collector may be registered in the Prometheus CollectorRegistry
@@ -113,13 +115,47 @@ CollectorRegistry.defaultRegistry.register(collector);
 
 ##Advanced Usage
 ###Gauge
-multiple value suppliers
+```java
+registry.getOrRegister(new GaugeBuilder("name", "help").withLabels("label1")
+                                                       .withValueSupplier(() -> 1, "value1")
+                                                       .withValueSupplier(() -> 2, "value2")
+                                                       .
+                                                       .
+                                                       .build());
+```
 
 ###Summary
-Different reservoirs
+The *Summary* metric support the different types of reservoirs that DropWizard supports. They can be used like so:
+
+The default reservoir is the exponentially decaying reservoir.
+```java
+Summary summary = registry.getOrRegister(new SummaryBuilder("name", "help").withReservoir()
+                                                 .withUniformReservoir(100)
+                                                 .build());
+```
 
 ###Histograms
-Specify buckets
+The *Histogram* can be configured with custom buckets or with equal width buckets at a given range.
+```java
+//Custom buckets
+Histogram histo = registry.getOrRegister(new HistogramBuilder("name", "help")
+                                                .withBuckets(0.1, 0.2, 0.5, 1.0)
+                                                .build());
+
+//Equal width buckets - creating five buckets with the width 0.2 and starting with 0.1
+// 0.1, 0.3, 0.5, 0.7, 0.9
+Histogram histo = registry.getOrRegister(new HistogramBuilder("name", "help").withEqualWidthBuckets(0.1, 0.2, 5)
+                                                                             .build());
+```
 
 ###Timers
-Different clocks
+The *Timer* supports custom clocks, with the default being the system clock which measures intervals
+according to *System.nanoTime()*.
+
+This example shows a timer over a *Histogram* metric, but it's also applicable to the *Summary* metric
+```java
+//Using an instance of MyClock instead of the default
+Histogram timer = registry.getOrRegister(new HistogramBuilder("name", "help")
+                                                .withClock(new MyClock())
+                                                .build()); 
+```
