@@ -1,4 +1,6 @@
 #Prometheus Client
+[ ![Download](https://api.bintray.com/packages/outbrain/OutbrainOSS/prometheus-client/images/download.svg) ](https://bintray.com/outbrain/OutbrainOSS/prometheus-client/_latestVersion)
+
 This library is a java client for Prometheus, it implements all 4 Prometheus metrics - Counter, Gauge, Summary and Histogram.
 
 ##Table of Contents
@@ -26,6 +28,8 @@ DropWizard metrics. For the Histogram metric we implemented our own as DropWizar
 a bucket-based histogram.
 
 ##Getting Started
+*prometheus-client* is hosted on [Bintray](#https://bintray.com/outbrain/OutbrainOSS/prometheus-client#)
+
 Add a maven/gradle dependency:
 
 **Maven**
@@ -138,8 +142,6 @@ CollectorRegistry.defaultRegistry.register(collector);
 registry.getOrRegister(new GaugeBuilder("name", "help").withLabels("label1")
                                                        .withValueSupplier(() -> 1, "value1")
                                                        .withValueSupplier(() -> 2, "value2")
-                                                       .
-                                                       .
                                                        .build());
 ```
 
