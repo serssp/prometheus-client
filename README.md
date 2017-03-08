@@ -1,7 +1,7 @@
 #Prometheus Client
 [ ![Download](https://api.bintray.com/packages/outbrain/OutbrainOSS/prometheus-client/images/download.svg) ](https://bintray.com/outbrain/OutbrainOSS/prometheus-client/_latestVersion)
 
-This library is a java client for Prometheus, it implements all 4 Prometheus metrics - Counter, Gauge, Summary and Histogram.
+This library is a java client for Prometheus, it implements all 4 Prometheus metrics - Counter, Gauge, Summary and Histogram. The API is very similar to Prometheus' own client but we tried to keep everything thread-safe while avoiding *synchronized* blocks.
 
 ##Table of Contents
 * [Background](#background)
