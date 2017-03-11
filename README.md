@@ -1,7 +1,9 @@
 #Prometheus Client
-[ ![Download](https://api.bintray.com/packages/outbrain/OutbrainOSS/prometheus-client/images/download.svg) ](https://bintray.com/outbrain/OutbrainOSS/prometheus-client/_latestVersion)
+[![Bintray](https://img.shields.io/bintray/v/outbrain/OutbrainOSS/prometheus-client.svg)](https://bintray.com/outbrain/OutbrainOSS/prometheus-client)
 
-This library is a java client for Prometheus, it implements all 4 Prometheus metrics - Counter, Gauge, Summary and Histogram. The API is very similar to Prometheus' own client but we tried to keep everything thread-safe while avoiding *synchronized* blocks.
+A Prometheus-compliant Java client, exposing all metric types: Counter, Gauge, Summary and Histogram.
+
+This is not the official Prometheus client, which can be found here: [https://github.com/prometheus/client_java](https://github.com/prometheus/client_java)
 
 ##Table of Contents
 * [Background](#background)
@@ -20,12 +22,12 @@ This library is a java client for Prometheus, it implements all 4 Prometheus met
     * [Timer](#timer---advanced)
 
 ##Background
-When we first started using Prometheus we looked for a client to suite us. Unfortunately Prometheus' own
-java client is riddled with *synchronized* methods (See the *CKMSQuantiles* class).
+At [Outbrain](http://techblog.outbrain.com/), we're using [dropwizard-metrics](http://metrics.dropwizard.io/3.2.0/) library.
+When we began migrating to Prometheus, the support for labels was needed - so we went to check the official client.
 
-In light of that we decided to write our own client. For most metric implementations we simply wrapped
-DropWizard metrics. For the Histogram metric we implemented our own as DropWizard has no support for
-a bucket-based histogram.
+As metrics is something very fundamental and heavy used -everywhere- in our services, in a multi-threaded environment, we did a review to the official client code, outcoming with one main issue: [synchronization](https://github.com/prometheus/client_java/blob/master/simpleclient/src/main/java/io/prometheus/client/CKMSQuantiles.java) instead of using concurrent data-structures.
+
+In light of that [contention overhead](http://www.ibm.com/developerworks/library/j-threads2/) we decided to write our own client, wrapping dropwizard-metrics interanlly, with custom Bucket-based [Histogram](https://github.com/outbrain/prometheus-client/blob/master/src/main/java/com/outbrain/swinfra/metrics/Histogram.java) implementation.
 
 ##Getting Started
 *prometheus-client* is hosted on [Bintray](#https://bintray.com/outbrain/OutbrainOSS/prometheus-client#)
@@ -37,13 +39,13 @@ Add a maven/gradle dependency:
 <dependency>
     <groupId>com.outbrain.swinfra</groupId>
     <artifactId>prometheus-client</artifactId>
-    <version>???</version>
+    <version>0.x</version>
 </dependency>
 ```
 
 **Gradle**
 ```
-com.outbrain.swinfra:prometheus-client:???
+com.outbrain.swinfra:prometheus-client:0.x
 ```
 
 ##Measuring
@@ -180,3 +182,6 @@ Histogram timer = registry.getOrRegister(new HistogramBuilder("name", "help")
                                                 .withClock(new MyClock())
                                                 .build()); 
 ```
+
+## License
+prometheus-client is released under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
