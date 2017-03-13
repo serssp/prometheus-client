@@ -22,12 +22,15 @@ This is not the official Prometheus client, which can be found here: [https://gi
     * [Timer](#timer---advanced)
 
 ##Background
-At [Outbrain](http://techblog.outbrain.com/), we're using [dropwizard-metrics](http://metrics.dropwizard.io/3.2.0/) library.
 When we began migrating to Prometheus, the support for labels was needed - so we went to check the official client.
 
-As metrics is something very fundamental and heavy used -everywhere- in our services, in a multi-threaded environment, we did a review to the official client code, outcoming with one main issue: [synchronization](https://github.com/prometheus/client_java/blob/master/simpleclient/src/main/java/io/prometheus/client/CKMSQuantiles.java) instead of using concurrent data-structures.
+At [Outbrain](http://techblog.outbrain.com/) metrics are heavily used in all our micro-services and in a multi-threaded 
+environment. Thread-safety is key and the performance impact of using metrics must be negligible.
 
-In light of that [contention overhead](http://www.ibm.com/developerworks/library/j-threads2/) we decided to write our own client, wrapping dropwizard-metrics interanlly, with custom Bucket-based [Histogram](https://github.com/outbrain/prometheus-client/blob/master/src/main/java/com/outbrain/swinfra/metrics/Histogram.java) implementation.
+When reviewing the official Prometheus client we discovered a several *synchronized* blocks that in the *Summary* and *Gauge*
+metric types. In order to avoid the [contention](http://www.ibm.com/developerworks/library/j-threads2/) we decided to write our own client, 
+wrapping dropwizard-metrics internally, with a custom Bucket-based 
+[Histogram](https://github.com/outbrain/prometheus-client/blob/master/src/main/java/com/outbrain/swinfra/metrics/Histogram.java) implementation.
 
 ##Getting Started
 *prometheus-client* is hosted on [Bintray](#https://bintray.com/outbrain/OutbrainOSS/prometheus-client#)
