@@ -1,6 +1,6 @@
 #Prometheus Client
 [![Build Status](https://travis-ci.org/outbrain/prometheus-client.svg?branch=master)](https://travis-ci.org/outbrain/prometheus-client)
-[![Download](https://api.bintray.com/packages/outbrain/OutbrainOSS/prometheus-client/images/download.svg) ](https://bintray.com/outbrain/OutbrainOSS/prometheus-client/_latestVersion)
+[![Bintray](https://img.shields.io/bintray/v/outbrain/OutbrainOSS/prometheus-client.svg)](https://bintray.com/outbrain/OutbrainOSS/prometheus-client)
 
 A Prometheus-compliant Java client, exposing all metric types: Counter, Gauge, Summary and Histogram.
 
