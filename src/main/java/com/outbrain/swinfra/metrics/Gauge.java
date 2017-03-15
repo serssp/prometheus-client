@@ -9,6 +9,7 @@ import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
 import org.apache.commons.lang3.Validate;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +47,13 @@ public class Gauge extends AbstractMetric<DoubleSupplier> {
 
   public double getValue(final String... labelValues) {
     return metricForLabels(labelValues).getAsDouble();
+  }
+
+  @Override
+  public void forEachSample(final SampleConsumer sampleConsumer) throws IOException {
+    for (final MetricData<DoubleSupplier> metricData : allMetricData()) {
+      sampleConsumer.apply(getName(), metricData.getMetric().getAsDouble(), metricData.getLabelValues(), null, null);
+    }
   }
 
   @Override

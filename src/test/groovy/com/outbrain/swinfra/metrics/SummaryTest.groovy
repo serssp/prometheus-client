@@ -5,6 +5,7 @@ import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static com.outbrain.swinfra.metrics.Summary.QUANTILE_LABEL
 import static com.outbrain.swinfra.metrics.Summary.SummaryBuilder
 import static io.prometheus.client.Collector.MetricFamilySamples
 import static io.prometheus.client.Collector.MetricFamilySamples.Sample
@@ -12,12 +13,14 @@ import static io.prometheus.client.Collector.Type.SUMMARY
 
 class SummaryTest extends Specification {
 
-    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator([:])
     private static final String NAME = "mySummary"
     private static final String SUM_NAME = NAME + "_sum"
     private static final String COUNT_NAME = NAME + "_count"
     private static final String HELP = "HELP"
-    private static final List<String> QUANTILE_LABEL = ["quantile"]
+
+    private final SampleConsumer sampleConsumer = Mock(SampleConsumer)
+    private final SampleCreator sampleCreator = new StaticLablesSampleCreator([:])
+
 
     final TestClock clock = new TestClock()
 
@@ -30,31 +33,50 @@ class SummaryTest extends Specification {
         when:
             final MetricFamilySamples actualMetricFamilySamples = summary.getSample(sampleCreator)
         then:
-            summary.getSample(sampleCreator) == metricFamilySamples
             actualMetricFamilySamples.samples as Set == metricFamilySamples.samples as Set
             actualMetricFamilySamples.name == metricFamilySamples.name
             actualMetricFamilySamples.help == metricFamilySamples.help
             actualMetricFamilySamples.type == metricFamilySamples.type
+        when:
+            summary.forEachSample(sampleConsumer)
+        then:
+            1 * sampleConsumer.apply(NAME, 0, [], QUANTILE_LABEL, '0.5')
+            1 * sampleConsumer.apply(NAME, 0, [], QUANTILE_LABEL, '0.75')
+            1 * sampleConsumer.apply(NAME, 0, [], QUANTILE_LABEL, '0.95')
+            1 * sampleConsumer.apply(NAME, 0, [], QUANTILE_LABEL, '0.98')
+            1 * sampleConsumer.apply(NAME, 0, [], QUANTILE_LABEL, '0.99')
+            1 * sampleConsumer.apply(NAME, 0, [], QUANTILE_LABEL, '0.999')
+            1 * sampleConsumer.apply(SUM_NAME, 0, [], null, null)
+            1 * sampleConsumer.apply(COUNT_NAME, 0, [], null, null)
     }
 
     def 'Summary with no labels should return correct samples after some measurements'() {
         given:
             final List<Sample> samples = generateSummarySamples([], [], 1000)
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
+            final double sum = (1..1000).sum() as double
+        when:
             final Summary summary = new SummaryBuilder(NAME, HELP).withClock(clock).build()
             1.upto(1000, {
                 clock.tick = it - 1
                 summary.observe(it)
             })
-
-        when:
-            final MetricFamilySamples actualMetricFamilySamples = summary.getSample(sampleCreator)
         then:
-            summary.getSample(sampleCreator) == metricFamilySamples
             actualMetricFamilySamples.samples as Set == metricFamilySamples.samples as Set
             actualMetricFamilySamples.name == metricFamilySamples.name
             actualMetricFamilySamples.help == metricFamilySamples.help
             actualMetricFamilySamples.type == metricFamilySamples.type
+        when:
+            summary.forEachSample(sampleConsumer)
+        then:
+            1 * sampleConsumer.apply(NAME, 500, [], QUANTILE_LABEL, '0.5')
+            1 * sampleConsumer.apply(NAME, 750, [], QUANTILE_LABEL, '0.75')
+            1 * sampleConsumer.apply(NAME, 950, [], QUANTILE_LABEL, '0.95')
+            1 * sampleConsumer.apply(NAME, 980, [], QUANTILE_LABEL, '0.98')
+            1 * sampleConsumer.apply(NAME, 990, [], QUANTILE_LABEL, '0.99')
+            1 * sampleConsumer.apply(NAME, 999, [], QUANTILE_LABEL, '0.999')
+            1 * sampleConsumer.apply(SUM_NAME, sum, [], null, null)
+            1 * sampleConsumer.apply(COUNT_NAME, 1000, [], null, null)
     }
 
     def 'Summary with no labels and sampleCreator with labels should return correct samples after some measurements'() {
@@ -73,13 +95,14 @@ class SummaryTest extends Specification {
                 summary.observe(it)
             })
         when:
-            final MetricFamilySamples actualMetricFamilySamples = summary.getSample(sampleCreator)
-        then:
-            summary.getSample(sampleCreator) == metricFamilySamples
             actualMetricFamilySamples.samples as Set == metricFamilySamples.samples as Set
             actualMetricFamilySamples.name == metricFamilySamples.name
             actualMetricFamilySamples.help == metricFamilySamples.help
             actualMetricFamilySamples.type == metricFamilySamples.type
+        then:
+            summary.getSample(sampleCreator) == metricFamilySamples
+
+        // static labels for sampleConsumer are handled at the collector levels so testing this scenario is not needed for it
     }
 
     def 'Summary with labels should return correct samples after some measurements'() {
@@ -128,7 +151,7 @@ class SummaryTest extends Specification {
             clock.tick = startTime
             final List<Sample> samples = generateSummarySamples([], [], 1000, 1)
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
-
+            final double sum = (1..1000).sum() as double
             final Summary summary = new SummaryBuilder(NAME, HELP).withClock(clock).
                     withReservoir().withExponentiallyDecayingReservoir(1024, 0.00001).build()
 
@@ -147,6 +170,18 @@ class SummaryTest extends Specification {
             actualMetricFamilySamples.name == metricFamilySamples.name
             actualMetricFamilySamples.help == metricFamilySamples.help
             actualMetricFamilySamples.type == metricFamilySamples.type
+
+        when:
+            summary.forEachSample(sampleConsumer)
+        then:
+            1 * sampleConsumer.apply(NAME, 500, [], QUANTILE_LABEL, '0.5')
+            1 * sampleConsumer.apply(NAME, 750, [], QUANTILE_LABEL, '0.75')
+            1 * sampleConsumer.apply(NAME, 950, [], QUANTILE_LABEL, '0.95')
+            1 * sampleConsumer.apply(NAME, 980, [], QUANTILE_LABEL, '0.98')
+            1 * sampleConsumer.apply(NAME, 990, [], QUANTILE_LABEL, '0.99')
+            1 * sampleConsumer.apply(NAME, 999, [], QUANTILE_LABEL, '0.999')
+            1 * sampleConsumer.apply(SUM_NAME, sum, [], null, null)
+            1 * sampleConsumer.apply(COUNT_NAME, 1000, [], null, null)
     }
 
     def 'Summary without labels should throw an exception when attempting to observe a value with labels'() {
@@ -203,7 +238,7 @@ class SummaryTest extends Specification {
                                             final double value,
                                             final List<String> labelNames,
                                             final List<String> labelValues) {
-        final List<String> labels = labelNames + QUANTILE_LABEL
+        final List<String> labels = labelNames + [QUANTILE_LABEL]
         final List<String> values = labelValues + quantile
         return new Sample(NAME, labels, values, value)
     }
