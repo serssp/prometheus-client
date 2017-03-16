@@ -46,7 +46,7 @@ class MetricRegistryTest extends Specification {
             secondCounter.is(firstCounter)
     }
 
-    def 'Metric registry should return the already registered metric when attempting to register a metric with the same name labels'() {
+    def 'Metric registry should return the already registered metric when attempting to register a metric with the same name and labels'() {
         final String metricName = "existing_metric_name"
         final String label = "myLabel"
 

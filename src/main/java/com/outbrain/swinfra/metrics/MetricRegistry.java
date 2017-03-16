@@ -21,7 +21,7 @@ public class MetricRegistry {
    * A metric already exists if a metric with the same name and label names was already registered in this registry
    * </p>
    * <p>
-   * If an attempt to register two metrics with the same name an labels , but different types, is made then an
+   * If an attempt to register two metrics with the same name and labels , but different types, is made then an
    * exception will be thrown. Like so:
    * </p>
    * <pre>
