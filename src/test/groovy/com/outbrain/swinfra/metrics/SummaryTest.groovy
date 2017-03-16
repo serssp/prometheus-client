@@ -7,6 +7,8 @@ import spock.lang.Unroll
 
 import static com.outbrain.swinfra.metrics.Summary.QUANTILE_LABEL
 import static com.outbrain.swinfra.metrics.Summary.SummaryBuilder
+import static com.outbrain.swinfra.metrics.timing.TimingMetric.COUNT_SUFFIX
+import static com.outbrain.swinfra.metrics.timing.TimingMetric.SUM_SUFFIX
 import static io.prometheus.client.Collector.MetricFamilySamples
 import static io.prometheus.client.Collector.MetricFamilySamples.Sample
 import static io.prometheus.client.Collector.Type.SUMMARY
@@ -14,8 +16,8 @@ import static io.prometheus.client.Collector.Type.SUMMARY
 class SummaryTest extends Specification {
 
     private static final String NAME = "mySummary"
-    private static final String SUM_NAME = NAME + "_sum"
-    private static final String COUNT_NAME = NAME + "_count"
+    private static final String SUM_NAME = NAME + SUM_SUFFIX
+    private static final String COUNT_NAME = NAME + COUNT_SUFFIX
     private static final String HELP = "HELP"
 
     private final SampleConsumer sampleConsumer = Mock(SampleConsumer)
