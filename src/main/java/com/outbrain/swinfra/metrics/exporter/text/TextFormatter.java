@@ -1,15 +1,15 @@
-package com.outbrain.swinfra.metrics.format.text;
+package com.outbrain.swinfra.metrics.exporter.text;
 
 import com.outbrain.swinfra.metrics.Metric;
 import com.outbrain.swinfra.metrics.MetricCollector;
-import com.outbrain.swinfra.metrics.format.CollectorFormatter;
+import com.outbrain.swinfra.metrics.exporter.CollectorExporter;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TextFormatter implements CollectorFormatter {
+public class TextFormatter implements CollectorExporter {
     public static final String CONTENT_TYPE_004 = "text/plain; version=0.0.4; charset=utf-8";
 
     private final MetricCollector metricCollector;
@@ -21,7 +21,7 @@ public class TextFormatter implements CollectorFormatter {
 
 
     @Override
-    public void formatTo(final Appendable appendable) throws IOException {
+    public void exportTo(final Appendable appendable) throws IOException {
         final Map<String, String> staticLabels = metricCollector.getStaticLabels();
         for (final Metric metric : metricCollector) {
             final String header = headerByMetric.computeIfAbsent(metric, this::createHeader);
