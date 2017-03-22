@@ -1,6 +1,6 @@
 package com.outbrain.swinfra.metrics
 
-import com.outbrain.swinfra.metrics.format.CollectorFormatter
+import com.outbrain.swinfra.metrics.exporter.CollectorExporter
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -54,7 +54,7 @@ class MetricCollectorRegistryTest extends Specification {
             registry.register(collector1)
             registry.register(collector2)
             registry.register(collector3)
-            Iterator<CollectorFormatter> iterator = registry.iterator()
+            Iterator<CollectorExporter> iterator = registry.iterator()
             Set<MetricCollector> iterated = [] as Set
         when:
             while (iterator.hasNext()) {

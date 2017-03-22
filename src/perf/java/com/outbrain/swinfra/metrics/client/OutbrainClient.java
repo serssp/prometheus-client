@@ -5,8 +5,8 @@ import com.outbrain.swinfra.metrics.Histogram;
 import com.outbrain.swinfra.metrics.MetricCollector;
 import com.outbrain.swinfra.metrics.MetricCollectorRegistry;
 import com.outbrain.swinfra.metrics.MetricRegistry;
-import com.outbrain.swinfra.metrics.format.CollectorRegistryFormatter;
-import com.outbrain.swinfra.metrics.format.CollectorRegistryFormatterFactory;
+import com.outbrain.swinfra.metrics.exporter.CollectorRegistryExporter;
+import com.outbrain.swinfra.metrics.exporter.CollectorRegistryExporterFactory;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -15,19 +15,19 @@ import static java.util.Collections.emptyMap;
 
 public class OutbrainClient extends AbstractClient {
 
-    private CollectorRegistryFormatter formatter;
+    private CollectorRegistryExporter formatter;
 
     @Override
     public void setUp() {
         super.setUp();
         final MetricCollectorRegistry metricCollectorRegistry = new MetricCollectorRegistry();
         metricCollectorRegistry.register(createCollector());
-        formatter = CollectorRegistryFormatterFactory.TEXT_004.create(metricCollectorRegistry);
+        formatter = CollectorRegistryExporterFactory.TEXT_004.create(metricCollectorRegistry);
     }
 
     @Override
     public void executeLogic(final Writer writer) throws IOException {
-        formatter.format(writer);
+        formatter.export(writer);
     }
 
     private MetricCollector createCollector() {

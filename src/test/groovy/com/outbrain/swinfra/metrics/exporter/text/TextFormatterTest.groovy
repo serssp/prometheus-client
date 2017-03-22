@@ -1,4 +1,4 @@
-package com.outbrain.swinfra.metrics.format.text
+package com.outbrain.swinfra.metrics.exporter.text
 
 import com.outbrain.swinfra.metrics.Counter
 import com.outbrain.swinfra.metrics.MetricCollector
@@ -22,7 +22,7 @@ class TextFormatterTest extends Specification {
 
             formatter = new TextFormatter(collector)
         when:
-            formatter.formatTo(output)
+            formatter.exportTo(output)
         then:
             '''# HELP Counter1 help
 # TYPE Counter1 counter
