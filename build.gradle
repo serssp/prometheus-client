@@ -14,7 +14,7 @@ repositories {
 }
 
 sourceSets {
-    jmh
+    perf
 }
 
 dependencies {
@@ -29,17 +29,18 @@ dependencies {
         'cglib:cglib-nodep:3.1',
         'org.objenesis:objenesis:2.4'
     )
-    jmhCompile(
+    perfCompile(
         project,
         'org.openjdk.jmh:jmh-core:0.9',
         'org.openjdk.jmh:jmh-generator-annprocess:0.9',
         'io.prometheus:simpleclient:0.0.18',
         'io.prometheus:simpleclient_common:0.0.18',
+        'org.hdrhistogram:HdrHistogram:2.1.8'
     )
 }
 
 
-task jmhHelp(description:'Print help for the jmh task', group: 'jmh')  {
+task jmhHelp(description:'Print help for the jmh task', group: 'perf')  {
     doLast {
         println ""
         println "Usage of jmh tasks:"
@@ -78,14 +79,14 @@ task jmhHelp(description:'Print help for the jmh task', group: 'jmh')  {
     }
 }
 
-task jmhProfilers(type: JavaExec, description:'Lists the available profilers for the jmh task', group: 'jmh') {
-    classpath = sourceSets.jmh.runtimeClasspath
+task jmhProfilers(type: JavaExec, description:'Lists the available profilers for the jmh task', group: 'perf') {
+    classpath = sourceSets.perf.runtimeClasspath
     main = 'org.openjdk.jmh.Main'
     args '-lprof'
 }
 
-task jmh(type: JavaExec, description: 'Executing JMH benchmarks', group: 'jmh') {
-    classpath = sourceSets.jmh.runtimeClasspath
+task jmh(type: JavaExec, description: 'Executing JMH benchmarks', group: 'perf') {
+    classpath = sourceSets.perf.runtimeClasspath
     main = 'org.openjdk.jmh.Main'
 
     def include = project.properties.get('include', '');
@@ -97,7 +98,7 @@ task jmh(type: JavaExec, description: 'Executing JMH benchmarks', group: 'jmh') 
     def forks = project.properties.get('forks', 2)
     def warmUpIterations = project.properties.get('warmups', 4)
 
-    def resultFile = file("build/reports/jmh/result.${format}")
+    def resultFile = file("build/reports/perf/result.${format}")
 
     args include
     if(exclude) {
