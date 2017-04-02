@@ -9,6 +9,10 @@ public class MetricData<T> {
   private final T metric;
   private final List<String> labelValues;
 
+  public MetricData(final T metric) {
+    this(metric, null);
+  }
+
   public MetricData(final T metric, final String[] labelValues) {
     this.metric = metric;
     this.labelValues = labelValues == null ? emptyList() : Arrays.asList(labelValues);

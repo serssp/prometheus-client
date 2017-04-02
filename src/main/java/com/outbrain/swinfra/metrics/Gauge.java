@@ -65,7 +65,7 @@ public class Gauge extends AbstractMetric<CachedGauge<Double>> {
   ChildMetricRepo<CachedGauge<Double>> createChildMetricRepo() {
     if (valueSuppliers.size() == 1) {
       final CachedGauge<Double> gauge = valueSuppliers.values().iterator().next().getMetric();
-      return new UnlabeledChildRepo<>(new MetricData<>(gauge, new String[]{}));
+      return new UnlabeledChildRepo<>(new MetricData<>(gauge));
     } else {
       final ChildMetricRepo<CachedGauge<Double>> result = new LabeledChildrenRepo<>(valueSuppliers::get);
       valueSuppliers.keySet().forEach(metricLabels -> {
@@ -78,10 +78,9 @@ public class Gauge extends AbstractMetric<CachedGauge<Double>> {
 
   private Map<String, MetricData<CachedGauge<Double>>> convertToMetricData(final Map<String[], DoubleSupplier> valueSuppliers) {
     final Map<String, MetricData<CachedGauge<Double>>> metricData = new HashMap<>(valueSuppliers.size());
-    valueSuppliers.entrySet()
-                  .forEach(entry -> metricData.put(
-                      labelsToCommaDelimitedString(entry.getKey()),
-                      toMetricData(entry.getValue(), entry.getKey())));
+    valueSuppliers.forEach((labelValues, valueSupplier) -> metricData.put(
+                      labelsToCommaDelimitedString(labelValues),
+                      toMetricData(valueSupplier, labelValues)));
     return metricData;
   }
 

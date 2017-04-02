@@ -71,7 +71,7 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
   @Override
   ChildMetricRepo<Histogram> createChildMetricRepo() {
     if (getLabelNames().size() == 0) {
-      return new UnlabeledChildRepo<>(new MetricData<>(createHistogram(), new String[]{}));
+      return new UnlabeledChildRepo<>(new MetricData<>(createHistogram()));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
         final String[] labelValues = commaDelimitedStringToLabels(commaDelimitedLabelValues);

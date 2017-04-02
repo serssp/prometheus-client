@@ -46,7 +46,7 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
   @Override
   ChildMetricRepo<com.codahale.metrics.Counter> createChildMetricRepo() {
     if (getLabelNames().size() == 0) {
-      return new UnlabeledChildRepo<>(new MetricData<>(new com.codahale.metrics.Counter(), new String[]{}));
+      return new UnlabeledChildRepo<>(new MetricData<>(new com.codahale.metrics.Counter()));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
         final String[] labelValues = commaDelimitedStringToLabels(commaDelimitedLabelValues);
