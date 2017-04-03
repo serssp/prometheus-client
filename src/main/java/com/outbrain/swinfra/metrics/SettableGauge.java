@@ -48,7 +48,7 @@ public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
 
   @Override
   ChildMetricRepo<SettableDoubleSupplier> createChildMetricRepo() {
-    if (getLabelNames().size() == 0) {
+    if (getLabelNames().isEmpty()) {
       return new UnlabeledChildRepo<>(new MetricData<>(new SettableDoubleSupplier()));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
@@ -86,7 +86,7 @@ public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
 
   static class SettableDoubleSupplier implements DoubleSupplier {
 
-    private double value = 0;
+    private volatile double value = 0;
 
     void set(final double value) {
       this.value = value;
