@@ -55,6 +55,10 @@ public class Gauge extends AbstractMetric<CachedGauge<Double>> {
     };
   }
 
+  public double getValue(final String... labelValues) {
+    return metricForLabels(labelValues).getValue();
+  }
+
   @Override
   List<Sample> createSamples(final MetricData<CachedGauge<Double>> metricData, final SampleCreator sampleCreator) {
     return singletonList(sampleCreator.createSample(getName(),

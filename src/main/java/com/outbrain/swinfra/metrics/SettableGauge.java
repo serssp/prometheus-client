@@ -42,6 +42,10 @@ public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
     return GAUGE;
   }
 
+  public double getValue(final String... labelValues) {
+    return metricForLabels(labelValues).getAsDouble();
+  }
+
   @Override
   ChildMetricRepo<SettableDoubleSupplier> createChildMetricRepo() {
     if (getLabelNames().size() == 0) {

@@ -1,11 +1,14 @@
 package com.outbrain.swinfra.metrics
 
+import com.outbrain.swinfra.metrics.Gauge.GaugeBuilder
 import com.outbrain.swinfra.metrics.samples.SampleCreator
 import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator
 import io.prometheus.client.Collector
 import io.prometheus.client.Collector.MetricFamilySamples
 import io.prometheus.client.Collector.MetricFamilySamples.Sample
 import spock.lang.Specification
+
+import java.util.function.DoubleSupplier
 
 import static com.outbrain.swinfra.metrics.SettableGauge.SettableGaugeBuilder
 import static io.prometheus.client.Collector.Type.GAUGE
@@ -15,6 +18,35 @@ class SettableGaugeTest extends Specification {
     private static final String NAME = "NAME"
     private static final String HELP = "HELP"
     private static final SampleCreator sampleCreator = new StaticLablesSampleCreator([:])
+
+    def 'SettableGauge should have the correct value'() {
+        final double expectedValue = 239487234
+
+        given:
+            final SettableGauge settableGauge = new SettableGaugeBuilder(NAME, HELP).build()
+
+        when:
+            settableGauge.set(expectedValue)
+
+        then:
+            settableGauge.getValue() == expectedValue
+    }
+
+    def 'SettableGauge should have the correct value with labels'() {
+        final double expectedValue = 239487234
+        final String labelValue = "value1"
+
+        given:
+            final SettableGauge settableGauge = new SettableGaugeBuilder(NAME, HELP)
+                    .withLabels("label1")
+                    .build()
+
+        when:
+            settableGauge.set(expectedValue, labelValue)
+
+        then:
+            settableGauge.getValue(labelValue) == expectedValue
+    }
 
     def "SettableGauge should return empty samples when nothing was set"() {
         given:

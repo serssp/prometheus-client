@@ -39,7 +39,7 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
     metricForLabels(labelValues).inc(n);
   }
 
-  long getValue(final String... labelValues) {
+  public long getValue(final String... labelValues) {
     return metricForLabels(labelValues).getCount();
   }
 
