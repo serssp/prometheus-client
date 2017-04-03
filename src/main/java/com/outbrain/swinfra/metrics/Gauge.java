@@ -28,6 +28,9 @@ import static java.util.Objects.requireNonNull;
  * <p>
  * The gauge exposes a single time-series with its value and labels.
  * </p>
+ * <p>
+ * This gauge uses a {@link DoubleSupplier} that provides a value every time this metric is sampled.
+ * </p>
  *
  * @see <a href="https://prometheus.io/docs/concepts/metric_types/#gauge">Prometheus gauge metric</a>
  */
