@@ -11,8 +11,9 @@ import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 import com.outbrain.swinfra.metrics.samples.SampleCreator;
-import com.outbrain.swinfra.metrics.timing.*;
+import com.outbrain.swinfra.metrics.timing.Clock;
 import com.outbrain.swinfra.metrics.timing.Timer;
+import com.outbrain.swinfra.metrics.timing.TimingMetric;
 import com.outbrain.swinfra.metrics.utils.QuantileUtils;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples.Sample;
@@ -103,8 +104,13 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
 
   public static class SummaryBuilder extends AbstractMetricBuilder<Summary, SummaryBuilder> {
 
+    private static final int DEFAULT_SIZE = 1028;
+    private static final double DEFAULT_ALPHA = 0.015;
+
     private Clock clock = DEFAULT_CLOCK;
-    private Supplier<Reservoir> reservoirSupplier = ExponentiallyDecayingReservoir::new;
+    private com.codahale.metrics.Clock codahaleClock = toCodahaleClock(DEFAULT_CLOCK);
+    private Supplier<Reservoir> reservoirSupplier = () -> new ExponentiallyDecayingReservoir(DEFAULT_SIZE, DEFAULT_ALPHA,
+                                                                                             codahaleClock);
 
     public SummaryBuilder(final String name, final String help) {
       super(name, help);
@@ -112,6 +118,7 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
 
     public SummaryBuilder withClock(final Clock clock) {
       this.clock = clock;
+      this.codahaleClock = toCodahaleClock(clock);
       return this;
     }
 
@@ -123,6 +130,16 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
 
       /**
        * Create this summary with an exponentially decaying reservoir - a reservoir that gives a lower
+       * importance to older measurements with default size and alpha.
+       *
+       * @see <a href="http://dimacs.rutgers.edu/~graham/pubs/papers/fwddecay.pdf">
+       */
+      public SummaryBuilder withExponentiallyDecayingReservoir() {
+        return withExponentiallyDecayingReservoir(DEFAULT_SIZE, DEFAULT_ALPHA);
+      }
+
+      /**
+       * Create this summary with an exponentially decaying reservoir - a reservoir that gives a lower
        * importance to older measurements.
        *
        * @param size  the size of the reservoir - the number of measurements that will be saved
@@ -131,7 +148,7 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
        * @see <a href="http://dimacs.rutgers.edu/~graham/pubs/papers/fwddecay.pdf">
        */
       public SummaryBuilder withExponentiallyDecayingReservoir(final int size, final double alpha) {
-        reservoirSupplier = () -> new ExponentiallyDecayingReservoir(size, alpha);
+        reservoirSupplier = () -> new ExponentiallyDecayingReservoir(size, alpha, codahaleClock);
         return SummaryBuilder.this;
       }
 
@@ -143,7 +160,7 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
        * @param windowUnit the window's time units
        */
       public SummaryBuilder withSlidingTimeWindowReservoir(final int window, final TimeUnit windowUnit) {
-        reservoirSupplier = () -> new SlidingTimeWindowReservoir(window, windowUnit);
+        reservoirSupplier = () -> new SlidingTimeWindowReservoir(window, windowUnit, codahaleClock);
         return SummaryBuilder.this;
       }
 
@@ -176,5 +193,28 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
     protected Summary create(final String fullName, final String help, final String[] labelNames) {
       return new Summary(fullName, help, labelNames, reservoirSupplier, clock);
     }
+  }
+
+  private static com.codahale.metrics.Clock toCodahaleClock(final Clock clock) {
+    if (clock instanceof com.codahale.metrics.Clock) {
+      return (com.codahale.metrics.Clock) clock;
+    }
+    return new CodahaleClockAdapter(clock);
+  }
+
+  private static class CodahaleClockAdapter extends com.codahale.metrics.Clock {
+
+    private final Clock clock;
+
+    CodahaleClockAdapter(final Clock clock) {
+      this.clock = clock;
+    }
+
+    @Override
+    public long getTick() {
+      return clock.getTick();
+    }
+
+
   }
 }
