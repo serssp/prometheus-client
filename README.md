@@ -13,6 +13,7 @@ This is not the official Prometheus client, which can be found here: [https://gi
     * [Registering a Metric](#registering-a-metric)
     * [Counter](#counter)
     * [Gauge](#gauge)
+    * [Settable Gauge](#settable-gauge)
     * [Summary](#summary)
     * [Histogram](#histogram)
     * [Timer](#timer)
@@ -86,6 +87,22 @@ registry.getOrRegister(new GaugeBuilder("name", "help").withValueSupplier(() -> 
 registry.getOrRegister(new GaugeBuilder("name", "help").withLabels("label1")
                                                        .withValueSupplier(() -> 1d, "value1")
                                                        .build());
+```
+
+### Settable Gauge
+A gauge whose value is set from an outside source, along with the label values if relevant.
+This is different from the regular gauge where the label values are set statically.
+```java
+//No labels
+SettableGauge settableGauge = registry.getOrRegister(new SettableGaugeBuilder("name", "help")
+                                                            .build());
+settableGauge.set(5);
+
+//With labels
+SettableGauge settableGauge = registry.getOrRegister(new SettableGaugeBuilder("name", "help")
+                                                            .withLabels("label1")
+                                                            .build());
+settableGauge.set(5, "value1");
 ```
 
 ### Summary
