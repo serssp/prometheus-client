@@ -12,8 +12,8 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.concurrent.TimeUnit;
 
 /*
@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 public class LatencyTest {
 
     private PerfTestClient currentClient;
-    private StringWriter currentBuffer;
+    private ByteArrayOutputStream currentBuffer;
 
 
     private final OutbrainClient outbrainClient = new OutbrainClient();
@@ -57,7 +57,7 @@ public class LatencyTest {
 
     private void measureLatency(final PerfTestClient client) {
         currentClient = client;
-        currentBuffer = client.createStringWriterForTest();
+        currentBuffer = client.createStreamForTest();
         try {
             client.executeLogic(currentBuffer);
         } catch (final IOException e) {
@@ -73,7 +73,7 @@ public class LatencyTest {
     }
 
     @TearDown
-    public void verify() {
-        currentClient.verify(currentBuffer.toString());
+    public void verify() throws Exception {
+        currentClient.verify(currentBuffer.toString("UTF-8"));
     }
 }

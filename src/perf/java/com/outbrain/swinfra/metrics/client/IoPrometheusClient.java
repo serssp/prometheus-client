@@ -5,7 +5,8 @@ import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.common.TextFormat;
 
 import java.io.IOException;
-import java.io.Writer;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,12 +23,10 @@ public class IoPrometheusClient extends AbstractClient {
     }
 
     @Override
-    public void executeLogic(final Writer writer) throws IOException {
+    public void executeLogic(final OutputStream outputStream) throws IOException {
+        final OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         TextFormat.write004(writer, collectorRegistry.metricFamilySamples());
-    }
-
-    protected String getExpectedFileName() {
-        return "PublishMetricsTestSimpleClientOutput.txt";
+        writer.flush();
     }
 
     private Collector createPrometheusCollector() {

@@ -11,7 +11,7 @@ class TextFormatterTest extends Specification {
 
     def 'appends a collector metric samples in text format to given output buffer'() {
         given:
-            StringBuilder output = new StringBuilder()
+            ByteArrayOutputStream output = new ByteArrayOutputStream()
             MetricCollector collector = Mock(MetricCollector)
             Counter counter1 = new Counter.CounterBuilder('Counter1', 'help').build()
             counter1.inc(17)

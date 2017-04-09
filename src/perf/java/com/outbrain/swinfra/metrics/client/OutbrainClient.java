@@ -9,7 +9,7 @@ import com.outbrain.swinfra.metrics.exporter.CollectorRegistryExporter;
 import com.outbrain.swinfra.metrics.exporter.CollectorRegistryExporterFactory;
 
 import java.io.IOException;
-import java.io.Writer;
+import java.io.OutputStream;
 
 import static java.util.Collections.emptyMap;
 
@@ -26,8 +26,8 @@ public class OutbrainClient extends AbstractClient {
     }
 
     @Override
-    public void executeLogic(final Writer writer) throws IOException {
-        formatter.export(writer);
+    public void executeLogic(final OutputStream outputStream) throws IOException {
+        formatter.export(outputStream);
     }
 
     private MetricCollector createCollector() {

@@ -19,7 +19,7 @@ class CollectorRegistryExporterTest extends Specification {
     private CollectorExporter collectorFormatter1 = Mock(CollectorExporter)
     private CollectorExporter collectorFormatter2 = Mock(CollectorExporter)
     private CollectorExporter collectorFormatter3 = Mock(CollectorExporter)
-    private StringBuilder output
+    private OutputStream output = Mock(OutputStream)
     private MetricCollectorRegistry registry
 
     def setup() {
@@ -38,7 +38,6 @@ class CollectorRegistryExporterTest extends Specification {
         }
 
         formatter = new CollectorRegistryExporter(this.registry, creator as Function)
-        this.output = new StringBuilder()
     }
 
 

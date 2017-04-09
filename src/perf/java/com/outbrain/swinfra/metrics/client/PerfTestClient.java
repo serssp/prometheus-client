@@ -1,8 +1,8 @@
 package com.outbrain.swinfra.metrics.client;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.OutputStream;
 
 public interface PerfTestClient {
 
@@ -12,9 +12,9 @@ public interface PerfTestClient {
 
     String simulateEndpoint();
 
-    void executeLogic(Writer writer) throws IOException;
+    void executeLogic(OutputStream outputStream) throws IOException;
 
-    StringWriter createStringWriterForTest();
+    ByteArrayOutputStream createStreamForTest();
 
     void verify(String result);
 }

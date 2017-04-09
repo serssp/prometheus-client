@@ -5,6 +5,9 @@ import com.outbrain.swinfra.metrics.MetricCollector;
 import com.outbrain.swinfra.metrics.exporter.CollectorExporter;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,35 +24,37 @@ public class TextFormatter implements CollectorExporter {
 
 
     @Override
-    public void exportTo(final Appendable appendable) throws IOException {
+    public void exportTo(final OutputStream outputStream) throws IOException {
+        final Writer stream = new OutputStreamWriter(outputStream);
         final Map<String, String> staticLabels = metricCollector.getStaticLabels();
         for (final Metric metric : metricCollector) {
             final String header = headerByMetric.computeIfAbsent(metric, this::createHeader);
-            appendable.append(header);
+            stream.append(header);
             final List<String> labelNames = metric.getLabelNames();
 
             metric.forEachSample((name, value, labelValues, additionalLabelName, additionalLabelValue) -> {
-                appendable.append(name);
+                stream.append(name);
                 if (containsLabels(staticLabels, labelNames, additionalLabelName)) {
-                    appendable.append("{");
+                    stream.append("{");
 
                     for (final Map.Entry<String, String> entry : staticLabels.entrySet()) {
-                        appendLabel(appendable, entry.getKey(), entry.getValue());
+                        appendLabel(stream, entry.getKey(), entry.getValue());
                     }
 
                     for(int i = 0; i < labelNames.size(); ++i) {
-                        appendLabel(appendable, labelNames.get(i), labelValues.get(i));
+                        appendLabel(stream, labelNames.get(i), labelValues.get(i));
                     }
 
                     if (additionalLabelName != null) {
-                        appendLabel(appendable, additionalLabelName, additionalLabelValue);
+                        appendLabel(stream, additionalLabelName, additionalLabelValue);
                     }
 
-                    appendable.append("}");
+                    stream.append("}");
                 }
-                appendable.append(" ").append(doubleToGoString(value)).append("\n");
+                stream.append(" ").append(doubleToGoString(value)).append("\n");
             });
         }
+        stream.flush();
     }
 
     private void appendLabel(final Appendable appendable, final String name, final String value) throws IOException {
