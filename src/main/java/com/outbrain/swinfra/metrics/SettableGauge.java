@@ -5,16 +5,12 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
-import com.outbrain.swinfra.metrics.samples.SampleCreator;
-import io.prometheus.client.Collector;
-import io.prometheus.client.Collector.MetricFamilySamples.Sample;
+import com.outbrain.swinfra.metrics.utils.MetricType;
 
-import java.util.List;
+import java.io.IOException;
 import java.util.function.DoubleSupplier;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
-import static io.prometheus.client.Collector.Type.GAUGE;
-import static java.util.Collections.singletonList;
 
 /**
  * An implementation of a Gauge metric. A gauge is a decimal value that can increase or decrease.
@@ -37,11 +33,6 @@ public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
     super(name, help, labelNames);
   }
 
-  @Override
-  public Collector.Type getType() {
-    return GAUGE;
-  }
-
   public double getValue(final String... labelValues) {
     return metricForLabels(labelValues).getAsDouble();
   }
@@ -58,13 +49,17 @@ public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
     }
   }
 
+
   @Override
-  List<Sample> createSamples(MetricData<SettableDoubleSupplier> metricData, SampleCreator sampleCreator) {
-    return singletonList(sampleCreator.createSample(getName(),
-                                                    getLabelNames(),
-                                                    metricData.getLabelValues(),
-                                                    metricData.getMetric().getAsDouble()
-    ));
+  public MetricType getType() {
+    return MetricType.GAUGE;
+  }
+
+  @Override
+  public void forEachSample(final SampleConsumer sampleConsumer) throws IOException {
+    for (final MetricData<SettableDoubleSupplier> metricData : allMetricData()) {
+      sampleConsumer.apply(getName(), metricData.getMetric().getAsDouble(), metricData.getLabelValues(), null, null);
+    }
   }
 
   public void set(double value, final String... labelValues) {
