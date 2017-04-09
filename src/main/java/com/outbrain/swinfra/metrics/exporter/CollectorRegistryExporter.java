@@ -4,6 +4,7 @@ import com.outbrain.swinfra.metrics.MetricCollector;
 import com.outbrain.swinfra.metrics.MetricCollectorRegistry;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -19,10 +20,10 @@ public class CollectorRegistryExporter {
         this.createExporter = createExporter;
     }
 
-    public void export(final Appendable appendable) throws IOException {
+    public void export(final OutputStream outputStream) throws IOException {
         for (final MetricCollector collector : registry) {
             final CollectorExporter exporter = exporterByCollectorMap.computeIfAbsent(collector, createExporter);
-            exporter.exportTo(appendable);
+            exporter.exportTo(outputStream);
         }
 
     }

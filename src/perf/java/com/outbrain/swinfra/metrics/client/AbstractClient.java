@@ -1,7 +1,7 @@
 package com.outbrain.swinfra.metrics.client;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -22,7 +22,7 @@ abstract class AbstractClient implements PerfTestClient {
     @Override
     public String createExpectedResult() {
         try {
-            return new String(Files.readAllBytes(Paths.get(ClassLoader.getSystemResource("PublishMetricsTestOutput.txt").toURI())));
+            return new String(Files.readAllBytes(Paths.get(ClassLoader.getSystemResource("PublishMetricsTestOutput.txt").toURI())), "UTF-8");
         } catch (IOException | URISyntaxException e) {
             throw new IllegalStateException("Failed to read expected file", e);
         }
@@ -30,17 +30,17 @@ abstract class AbstractClient implements PerfTestClient {
 
     @Override
     public String simulateEndpoint() {
-        try (final StringWriter writer = createStringWriterForTest()) {
-            executeLogic(writer);
-            return writer.toString();
+        try (final ByteArrayOutputStream outputStream = createStreamForTest()) {
+            executeLogic(outputStream);
+            return outputStream.toString("UTF-8");
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public StringWriter createStringWriterForTest() {
-        return new StringWriter(expected.length() + 1);
+    public ByteArrayOutputStream createStreamForTest() {
+        return new ByteArrayOutputStream(expected.length() + 1);
     }
 
     @Override
