@@ -29,7 +29,7 @@ import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedString
  */
 public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
 
-  SettableGauge(String name, String help, String[] labelNames) {
+  SettableGauge(final String name, final String help, final String[] labelNames) {
     super(name, help, labelNames);
   }
 
@@ -62,7 +62,7 @@ public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
     }
   }
 
-  public void set(double value, final String... labelValues) {
+  public void set(final double value, final String... labelValues) {
     metricForLabels(labelValues).set(value);
   }
 
