@@ -119,12 +119,12 @@ class SummaryTest extends Specification {
         when:
             summary.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME, 500, [], QUANTILE_LABEL, '0.5')
-            1 * sampleConsumer.apply(NAME, 750, [], QUANTILE_LABEL, '0.75')
-            1 * sampleConsumer.apply(NAME, 950, [], QUANTILE_LABEL, '0.95')
-            1 * sampleConsumer.apply(NAME, 980, [], QUANTILE_LABEL, '0.98')
-            1 * sampleConsumer.apply(NAME, 990, [], QUANTILE_LABEL, '0.99')
-            1 * sampleConsumer.apply(NAME, 999, [], QUANTILE_LABEL, '0.999')
+            1 * sampleConsumer.apply(NAME, 501, [], QUANTILE_LABEL, '0.5')
+            1 * sampleConsumer.apply(NAME, 751, [], QUANTILE_LABEL, '0.75')
+            1 * sampleConsumer.apply(NAME, 951, [], QUANTILE_LABEL, '0.95')
+            1 * sampleConsumer.apply(NAME, 981, [], QUANTILE_LABEL, '0.98')
+            1 * sampleConsumer.apply(NAME, 991, [], QUANTILE_LABEL, '0.99')
+            1 * sampleConsumer.apply(NAME, 1000, [], QUANTILE_LABEL, '0.999')
             1 * sampleConsumer.apply(SUM_NAME, sum, [], null, null)
             1 * sampleConsumer.apply(COUNT_NAME, 1000, [], null, null)
     }
