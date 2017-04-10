@@ -97,4 +97,59 @@ class MetricRegistryTest extends Specification {
         then:
             thrown(ClassCastException)
     }
+
+    def 'MetricRegistry should remain empty after registering and deregistering a metric'() {
+        given:
+            final MetricRegistry registry = new MetricRegistry()
+            final Counter counter = registry.getOrRegister(new CounterBuilder("name", "help").build())
+
+        when:
+            final boolean removed = registry.deregister(counter)
+
+        then:
+            removed
+            registry.all().isEmpty()
+    }
+
+    def 'MetricRegistry should not remove a non existing metric'() {
+        given:
+            final MetricRegistry registry = new MetricRegistry()
+            registry.getOrRegister(new CounterBuilder("name", "help").build())
+
+        when:
+            final boolean removed = registry.deregister(new CounterBuilder("differentName", "help").build())
+
+        then:
+            !removed
+            registry.all().size() == 1
+    }
+
+    def 'MetricRegistry should not remove a metric with an existing name but different type'() {
+        given:
+            final String metricName = "name"
+            final MetricRegistry registry = new MetricRegistry()
+            registry.getOrRegister(new CounterBuilder(metricName, "help").build())
+
+        when:
+            final boolean removed = registry.deregister(new SummaryBuilder(metricName, "help").build())
+
+        then:
+            !removed
+            registry.all().size() == 1
+    }
+
+    def 'MetricRegistry should remove only a specific metric when more than one exists in the registry'() {
+        given:
+            final MetricRegistry registry = new MetricRegistry()
+            final Counter counter1 = registry.getOrRegister(new CounterBuilder("name1", "help").build())
+            final Counter counter2 = registry.getOrRegister(new CounterBuilder("name2", "help").build())
+
+        when:
+            final boolean removed = registry.deregister(counter1)
+
+        then:
+            removed
+            registry.all().size() == 1
+            registry.all().contains(counter2)
+    }
 }

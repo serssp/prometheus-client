@@ -37,6 +37,16 @@ public class MetricRegistry {
     return (T) (result == null ? metric : result);
   }
 
+  /**
+   * Deregisters a metric from this registry only if this metric already exists
+   *
+   * @param metric the metric to deregister
+   * @return true if and only if the given metric existed in the registry prior to removal
+   */
+  public boolean deregister(final Metric metric) {
+    return allMetrics.remove(metric.getName(), metric);
+  }
+
   Collection<Metric> all() {
     return allMetricsView.values();
   }
