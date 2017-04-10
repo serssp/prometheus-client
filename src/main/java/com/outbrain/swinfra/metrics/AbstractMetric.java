@@ -35,7 +35,8 @@ abstract class AbstractMetric<T> implements Metric {
 
   abstract List<Sample> createSamples(MetricData<T> metricData, SampleCreator sampleCreator);
 
-  String getName() {
+  @Override
+  public String getName() {
     return name;
   }
 
@@ -48,7 +49,7 @@ abstract class AbstractMetric<T> implements Metric {
   }
 
   void validateLabelValues(final String... labelValues) {
-    if (labelNames.size() > 0) {
+    if (!labelNames.isEmpty()) {
       Validate.isTrue(labelNames.size() == labelValues.length, "A label value must be supplied for each label name");
     }
 

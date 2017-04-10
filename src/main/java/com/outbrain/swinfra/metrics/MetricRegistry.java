@@ -2,7 +2,6 @@ package com.outbrain.swinfra.metrics;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -18,28 +17,24 @@ public class MetricRegistry {
    * Registers a metric in this registry if it doesn't already exist, and returns the existing metric if the same
    * metric already exists.
    * <p>
-   * A metric already exists if a metric with the same name and label names was already registered in this registry
+   * A metric already exists if a metric with the same name was already registered in this registry.
    * </p>
    * <p>
-   * If an attempt to register two metrics with the same name and labels , but different types, is made then an
-   * exception will be thrown. Like so:
+   * If an attempt to register two metrics with the same name , but different types, is made then a
+   * ClassCastException will be thrown:
    * </p>
    * <pre>
    * final Counter counter = registry.getOrRegister(new Counter.CounterBuilder(<b>"name"</b>, "help").build());
    * final Summary summary = registry.getOrRegister(new Summary.SummaryBuilder(<b>"name"</b>, "help").build());
    * </pre>
    *
-   * @throws IllegalArgumentException if a metric with the same name was already registered
+   * @throws ClassCastException if a metric with the same name but different type was already registered
    */
   @SuppressWarnings("unchecked")
-  public <T extends AbstractMetric<?>> T getOrRegister(final AbstractMetric<?> metric) {
+  public <T extends Metric> T getOrRegister(final Metric metric) {
     requireNonNull(metric, "metric may not be null");
-    final String key = createKey(metric.getName(), metric.getLabelNames());
-    return (T) allMetrics.computeIfAbsent(key, s -> metric);
-  }
-
-  private String createKey(final String metricName, final List<String> labelNames) {
-    return metricName + labelNames.toString();
+    final Metric result = allMetrics.putIfAbsent(metric.getName(), metric);
+    return (T) (result == null ? metric : result);
   }
 
   Collection<Metric> all() {

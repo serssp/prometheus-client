@@ -8,4 +8,6 @@ public interface Metric {
   Collector.Type getType();
 
   MetricFamilySamples getSample(final SampleCreator sampleCreator);
+
+  String getName();
 }
