@@ -11,8 +11,9 @@ import java.lang.management.RuntimeMXBean;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
-public class StandardMetrics implements MetricsRegistrar {
+public class StandardMetrics extends MetricsRegistrar {
 
     private final static double KB = 1024;
 
@@ -37,28 +38,28 @@ public class StandardMetrics implements MetricsRegistrar {
     }
 
     @Override
-    public MetricRegistry registerMetricsTo(final MetricRegistry registry) {
-        registry.getOrRegister(
+    public MetricRegistry registerMetricsTo(final MetricRegistry registry, final Predicate<String> nameFilter) {
+        optionallyRegister(
             new Gauge.GaugeBuilder("process_cpu_seconds_total", "Total user and system CPU time spent in seconds.").
-                withValueSupplier(() -> TimeUnit.NANOSECONDS.toSeconds(osBean.getProcessCpuTime())).build());
-        registry.getOrRegister(
+                withValueSupplier(() -> TimeUnit.NANOSECONDS.toSeconds(osBean.getProcessCpuTime())).build(), registry, nameFilter);
+        optionallyRegister(
             new Gauge.GaugeBuilder("process_start_time_seconds", "Start time of the process since unix epoch in seconds.").
-                withValueSupplier(() -> TimeUnit.MILLISECONDS.toSeconds(runtimeBean.getStartTime())).build());
+                withValueSupplier(() -> TimeUnit.MILLISECONDS.toSeconds(runtimeBean.getStartTime())).build(), registry, nameFilter);
 
         if (unix) {
             final UnixOperatingSystemMXBean unixBean = (UnixOperatingSystemMXBean) osBean;
-            registry.getOrRegister(
+            optionallyRegister(
                 new Gauge.GaugeBuilder("process_open_fds", "Number of open file descriptors.").
-                    withValueSupplier(unixBean::getOpenFileDescriptorCount).build());
-            registry.getOrRegister(
+                    withValueSupplier(unixBean::getOpenFileDescriptorCount).build(), registry, nameFilter);
+            optionallyRegister(
                 new Gauge.GaugeBuilder("process_max_fds", "Maximum number of open file descriptors.").
-                    withValueSupplier(unixBean::getMaxFileDescriptorCount).build());
+                    withValueSupplier(unixBean::getMaxFileDescriptorCount).build(), registry, nameFilter);
         }
 
         // There's no standard Java or POSIX way to get memory stats,
         // so add support for just Linux for now.
         if (linux) {
-            registry.getOrRegister(
+            optionallyRegister(
                 new Gauge.GaugeBuilder("process_virtual_memory_bytes", "Virtual memory size in bytes.").
                     withValueSupplier(() -> {
                         try {
@@ -66,8 +67,8 @@ public class StandardMetrics implements MetricsRegistrar {
                         } catch (IOException e) {
                             return 0;
                         }
-                    }).build());
-            registry.getOrRegister(
+                    }).build(), registry, nameFilter);
+            optionallyRegister(
                 new Gauge.GaugeBuilder("process_resident_memory_bytes", "Resident memory size in bytes.").
                     withValueSupplier(() -> {
                         try {
@@ -75,21 +76,19 @@ public class StandardMetrics implements MetricsRegistrar {
                         } catch (IOException e) {
                             return 0;
                         }
-                    }).build());
+                    }).build(), registry, nameFilter);
         }
 
         return registry;
     }
 
     static class StatusReader {
-
         StatusParser readProcSelfStatus() throws IOException {
             return new StatusParser(new String(Files.readAllBytes(Paths.get("/proc/self/status"))));
         }
     }
 
     static class StatusParser {
-
         private final String status;
 
         StatusParser(final String status) {

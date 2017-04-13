@@ -5,8 +5,10 @@ import com.outbrain.swinfra.metrics.MetricRegistry
 import com.sun.management.UnixOperatingSystemMXBean
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import java.lang.management.RuntimeMXBean
+import java.util.function.Predicate
 
 class StandardMetricsTest extends Specification {
 
@@ -51,6 +53,18 @@ class StandardMetricsTest extends Specification {
             collector.find { it.name == 'process_cpu_seconds_total' }.getValue() == 123
             collector.find { it.name == 'process_virtual_memory_bytes' }.getValue() == 0
             collector.find { it.name == 'process_resident_memory_bytes' }.getValue() == 0
+    }
 
+    @Unroll
+    def 'filter metrics by name expect '() {
+        when:
+            MetricCollector collector = new MetricCollector(standardMetrics.registerMetricsTo(new MetricRegistry(), filter as Predicate))
+        then:
+            collector.collect {it.name }.sort() == expected
+        where:
+            filter                                  | expected
+            { name -> false }                       | []
+            { name -> name == 'process_max_fds' }   | ['process_max_fds']
+            { name -> true }                        | ['process_cpu_seconds_total', 'process_max_fds', 'process_open_fds', 'process_resident_memory_bytes', 'process_start_time_seconds', 'process_virtual_memory_bytes']
     }
 }

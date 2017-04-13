@@ -4,19 +4,20 @@ import com.outbrain.swinfra.metrics.MetricCollector
 import com.outbrain.swinfra.metrics.MetricRegistry
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import java.lang.management.ThreadMXBean
+import java.util.function.Predicate
 
 class ThreadMetricsTest extends Specification {
 
     private ThreadMXBean threadsBean = Mock(ThreadMXBean)
 
     @Subject
-    private ThreadMetrics threadMetrics;
+    private ThreadMetrics threadMetrics = new ThreadMetrics(threadsBean)
 
     def 'verify metrics registered correctly'() {
         given:
-            threadMetrics = new ThreadMetrics(threadsBean)
             threadsBean.getThreadCount() >> 300
             threadsBean.getDaemonThreadCount() >> 200
             threadsBean.getPeakThreadCount() >> 301
@@ -32,5 +33,18 @@ class ThreadMetricsTest extends Specification {
             collector.find { it.name == 'jvm_threads_started_total' }.getValue() == 503
             collector.find { it.name == 'jvm_threads_deadlocked' }.getValue() == 3
             collector.find { it.name == 'jvm_threads_deadlocked_monitor' }.getValue() == 3
+    }
+
+    @Unroll
+    def 'filter metrics by name expect '() {
+        when:
+            MetricCollector collector = new MetricCollector(threadMetrics.registerMetricsTo(new MetricRegistry(), filter as Predicate))
+        then:
+            collector.collect {it.name }.sort() == expected
+        where:
+            filter                                 | expected
+            { name -> false }                      | []
+            { name -> name == 'jvm_threads_peak' } | ['jvm_threads_peak']
+            { name -> true }                       | ['jvm_threads_current', 'jvm_threads_daemon', 'jvm_threads_deadlocked', 'jvm_threads_deadlocked_monitor', 'jvm_threads_peak', 'jvm_threads_started_total']
     }
 }
