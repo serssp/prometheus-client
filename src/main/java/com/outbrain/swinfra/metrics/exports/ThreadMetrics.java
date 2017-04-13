@@ -5,8 +5,9 @@ import com.outbrain.swinfra.metrics.MetricRegistry;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
+import java.util.function.Predicate;
 
-public class ThreadMetrics implements MetricsRegistrar {
+public class ThreadMetrics extends MetricsRegistrar {
 
     private final ThreadMXBean threadBean;
 
@@ -19,25 +20,25 @@ public class ThreadMetrics implements MetricsRegistrar {
     }
 
     @Override
-    public MetricRegistry registerMetricsTo(final MetricRegistry registry) {
-        registry.getOrRegister(
+    public MetricRegistry registerMetricsTo(final MetricRegistry registry, final Predicate<String> nameFilter) {
+        optionallyRegister(
             new Gauge.GaugeBuilder("jvm_threads_current", "Current thread count of a JVM").
-                withValueSupplier(threadBean::getThreadCount).build());
-        registry.getOrRegister(
+                withValueSupplier(threadBean::getThreadCount).build(), registry, nameFilter);
+        optionallyRegister(
             new Gauge.GaugeBuilder("jvm_threads_daemon", "Daemon thread count of a JVM").
-                withValueSupplier(threadBean::getDaemonThreadCount).build());
-        registry.getOrRegister(
+                withValueSupplier(threadBean::getDaemonThreadCount).build(), registry, nameFilter);
+        optionallyRegister(
             new Gauge.GaugeBuilder("jvm_threads_peak", "Peak thread count of a JVM").
-                withValueSupplier(threadBean::getPeakThreadCount).build());
-        registry.getOrRegister(
+                withValueSupplier(threadBean::getPeakThreadCount).build(), registry, nameFilter);
+        optionallyRegister(
             new Gauge.GaugeBuilder("jvm_threads_started_total", "Started thread count of a JVM").
-                withValueSupplier(threadBean::getTotalStartedThreadCount).build());
-        registry.getOrRegister(
+                withValueSupplier(threadBean::getTotalStartedThreadCount).build(), registry, nameFilter);
+        optionallyRegister(
             new Gauge.GaugeBuilder("jvm_threads_deadlocked", "Cycles of JVM-threads that are in deadlock waiting to acquire object monitors or ownable synchronizers").
-                withValueSupplier(() -> safeArrayLength(threadBean.findDeadlockedThreads())).build());
-        registry.getOrRegister(
+                withValueSupplier(() -> safeArrayLength(threadBean.findDeadlockedThreads())).build(), registry, nameFilter);
+        optionallyRegister(
             new Gauge.GaugeBuilder("jvm_threads_deadlocked_monitor", "Cycles of JVM-threads that are in deadlock waiting to acquire object monitors"    ).
-                withValueSupplier(() -> safeArrayLength(threadBean.findMonitorDeadlockedThreads())).build());
+                withValueSupplier(() -> safeArrayLength(threadBean.findMonitorDeadlockedThreads())).build(), registry, nameFilter);
         return registry;
     }
 
