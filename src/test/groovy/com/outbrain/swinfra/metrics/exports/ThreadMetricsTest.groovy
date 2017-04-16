@@ -36,7 +36,7 @@ class ThreadMetricsTest extends Specification {
     }
 
     @Unroll
-    def 'filter metrics by name expect '() {
+    def 'filter metrics by name expect #expected'() {
         when:
             MetricCollector collector = new MetricCollector(threadMetrics.registerMetricsTo(new MetricRegistry(), filter as Predicate))
         then:

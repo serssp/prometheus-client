@@ -56,7 +56,7 @@ class StandardMetricsTest extends Specification {
     }
 
     @Unroll
-    def 'filter metrics by name expect '() {
+    def 'filter metrics by name expect #expected'() {
         when:
             MetricCollector collector = new MetricCollector(standardMetrics.registerMetricsTo(new MetricRegistry(), filter as Predicate))
         then:
