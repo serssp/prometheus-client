@@ -3,6 +3,7 @@ package com.outbrain.swinfra.metrics
 import com.outbrain.swinfra.metrics.samples.SampleCreator
 import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static com.outbrain.swinfra.metrics.Summary.SummaryBuilder
 import static io.prometheus.client.Collector.MetricFamilySamples
@@ -61,7 +62,10 @@ class SummaryTest extends Specification {
         final SampleCreator sampleCreator = new StaticLablesSampleCreator(labelsMap)
 
         given:
-            final List<Sample> samples = generateSummarySamples(labelsMap.keySet() as List, labelsMap.values() as List, 1000)
+            final List<Sample> samples = generateSummarySamples(
+                    labelsMap.keySet() as List,
+                    labelsMap.values() as List,
+                    1000)
             final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, samples)
             final Summary summary = new SummaryBuilder(NAME, HELP).withClock(clock).build()
             1.upto(1000, {
@@ -87,12 +91,22 @@ class SummaryTest extends Specification {
             final List<Sample> samples1 = generateSummarySamples(labelNames, labelValues1, 1000)
             final List<Sample> samples2 = generateSummarySamples(labelNames, labelValues2, 1000)
 
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, SUMMARY, HELP, (samples1 + samples2) as List)
+            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(
+                    NAME,
+                    SUMMARY,
+                    HELP,
+                    (samples1 + samples2) as List)
 
             final Summary summary = new SummaryBuilder(NAME, HELP).withClock(clock)
-                .withReservoir().withExponentiallyDecayingReservoir(1028, 0.15) //Use a "custom" reservoir just for the sake of having compilation error if this is not working
-                .withLabels(labelNames as String[])
-                .build()
+                                                                  .
+                    withReservoir().
+                    withExponentiallyDecayingReservoir(
+                            1028,
+                            0.15) //Use a "custom" reservoir just for the sake of having compilation error if this is not working
+                                                                  .
+                    withLabels(labelNames as String[])
+                                                                  .
+                    build()
             1.upto(1000, {
                 clock.tick = it - 1
                 summary.observe(it, labelValues1 as String[])
@@ -135,11 +149,44 @@ class SummaryTest extends Specification {
             actualMetricFamilySamples.type == metricFamilySamples.type
     }
 
-    private static List<Sample> generateSummarySamples(final List<String> labelNames, final List<String> labelValues, final int count) {
+    def 'Summary without labels should throw an exception when attempting to observe a value with labels'() {
+        given:
+            final Summary summary = new SummaryBuilder(NAME, HELP).build()
+
+        when:
+            summary.observe(1, "labelValue")
+
+        then:
+            thrown(IllegalArgumentException.class)
+    }
+
+    @Unroll
+    def 'Summary with labels should throw an exception when attempting to observe a value with labels #labels'() {
+        given:
+            final Summary summary = new SummaryBuilder(NAME, HELP).withLabels("l1", "l2").build()
+
+        when:
+            summary.observe(1, labels as String[])
+
+        then:
+            thrown(IllegalArgumentException.class)
+
+        where:
+            labels << [[], ["v1", ""], ["v1", "v2", "v3"]]
+    }
+
+    private static List<Sample> generateSummarySamples(
+            final List<String> labelNames,
+            final List<String> labelValues,
+            final int count) {
         return generateSummarySamples(labelNames, labelValues, count, 0)
     }
 
-    private static List<Sample> generateSummarySamples(final List<String> labelNames, final List<String> labelValues, final int count, final int valueShift) {
+    private static List<Sample> generateSummarySamples(
+            final List<String> labelNames,
+            final List<String> labelValues,
+            final int count,
+            final int valueShift) {
         [
                 sampleForQuantile("0.5", count * 0.5 + valueShift, labelNames, labelValues),
                 sampleForQuantile("0.75", count * 0.75 + valueShift, labelNames, labelValues),

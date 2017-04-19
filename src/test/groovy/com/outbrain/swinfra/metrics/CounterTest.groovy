@@ -9,7 +9,6 @@ import static com.outbrain.swinfra.metrics.Counter.CounterBuilder
 import static io.prometheus.client.Collector.MetricFamilySamples
 import static io.prometheus.client.Collector.MetricFamilySamples.Sample
 import static io.prometheus.client.Collector.Type.COUNTER
-import static java.util.Collections.emptyList
 
 class CounterTest extends Specification {
 
@@ -129,5 +128,57 @@ class CounterTest extends Specification {
 
         then:
             counter.getSample(sampleCreator) == metricFamilySamples
+    }
+
+    def 'Counter without labels should throw an exception when attempting to increment with labels'() {
+        given:
+            final Counter counter = new CounterBuilder(NAME, HELP).build()
+
+        when:
+            counter.inc("labelValue")
+
+        then:
+            thrown(IllegalArgumentException.class)
+    }
+
+    def 'Counter without labels should throw an exception when attempting to increment by 5 with labels'() {
+        given:
+            final Counter counter = new CounterBuilder(NAME, HELP).build()
+
+        when:
+            counter.inc(5, "labelValue")
+
+        then:
+            thrown(IllegalArgumentException.class)
+    }
+
+    @Unroll
+    def 'Counter with labels should throw an exception when attempting to increment with labels #labels'() {
+        given:
+            final Counter counter = new CounterBuilder(NAME, HELP).withLabels("l1", "l2").build()
+
+        when:
+            counter.inc(labels as String[])
+
+        then:
+            thrown(IllegalArgumentException.class)
+
+        where:
+            labels << [[], ["v1", ""], ["v1", "v2", "v3"]]
+    }
+
+    @Unroll
+    def 'Counter with labels should throw an exception when attempting to increment by 5 with labels: #labels'() {
+        given:
+            final Counter counter = new CounterBuilder(NAME, HELP).withLabels("l1", "l2").build()
+
+        when:
+            counter.inc(5, labels as String[])
+
+        then:
+            thrown(IllegalArgumentException.class)
+
+        where:
+            labels << [[], ["v1", ""], ["v1", "v2", "v3"]]
     }
 }
