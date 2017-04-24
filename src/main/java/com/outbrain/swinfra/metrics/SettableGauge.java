@@ -22,9 +22,6 @@ import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedString
  * distinction because consecutive calls to the method <i>set</i> will not all show when sampling this metric, rather
  * the last value set will show.
  * </p>
- * <p>
- * So the following calls:
- * </p>
  * @see <a href="https://prometheus.io/docs/concepts/metric_types/#gauge">Prometheus gauge metric</a>
  */
 public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {

@@ -50,12 +50,10 @@ abstract class AbstractMetric<T> implements Metric {
   }
 
   void validateLabelValues(final String... labelValues) {
-    if (labelNames.size() > 0) {
-      Validate.isTrue(labelNames.size() == labelValues.length, "A label value must be supplied for each label name");
-    }
+    Validate.isTrue(labelNames.size() == labelValues.length, "A label value must be supplied for each label name");
 
-    for (final String labelName : labelNames) {
-      Validate.notBlank(labelName, "Label names must contain text");
+    for (final String labelValue : labelValues) {
+      Validate.notBlank(labelValue, "Label names must contain text");
     }
   }
 

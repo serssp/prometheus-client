@@ -10,7 +10,6 @@ public class NameUtils {
   public static final Pattern LABEL_NAME_PATTERN = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
 
   private static final String PROMETHEUS_NAMING_URL = "https://prometheus.io/docs/practices/naming/";
-  public static final String SEPARATOR = "_";
 
   /**
    * Validates that all entries in the supplised array are valid as label names

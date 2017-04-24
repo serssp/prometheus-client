@@ -1,6 +1,7 @@
 package com.outbrain.swinfra.metrics
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static com.outbrain.swinfra.metrics.Summary.QUANTILE_LABEL
 import static com.outbrain.swinfra.metrics.Summary.SummaryBuilder
@@ -62,9 +63,15 @@ class SummaryTest extends Specification {
         final List<String> labelValues2 = ['value3', 'value4']
         given:
             final Summary summary = new SummaryBuilder(NAME, HELP).withClock(clock)
-                .withReservoir().withExponentiallyDecayingReservoir(1028, 0.15) //Use a "custom" reservoir just for the sake of having compilation error if this is not working
-                .withLabels(labelNames as String[])
-                .build()
+                                                                  .
+                    withReservoir().
+                    withExponentiallyDecayingReservoir(
+                            1028,
+                            0.15) //Use a "custom" reservoir just for the sake of having compilation error if this is not working
+                                                                  .
+                    withLabels(labelNames as String[])
+                                                                  .
+                    build()
             1.upto(1000, {
                 clock.tick = it - 1
                 summary.observe(it, labelValues1 as String[])
@@ -121,4 +128,31 @@ class SummaryTest extends Specification {
             1 * sampleConsumer.apply(SUM_NAME, sum, [], null, null)
             1 * sampleConsumer.apply(COUNT_NAME, 1000, [], null, null)
     }
+
+    def 'Summary without labels should throw an exception when attempting to observe a value with labels'() {
+        given:
+            final Summary summary = new SummaryBuilder(NAME, HELP).build()
+
+        when:
+            summary.observe(1, "labelValue")
+
+        then:
+            thrown(IllegalArgumentException.class)
+    }
+
+    @Unroll
+    def 'Summary with labels should throw an exception when attempting to observe a value with labels #labels'() {
+        given:
+            final Summary summary = new SummaryBuilder(NAME, HELP).withLabels("l1", "l2").build()
+
+        when:
+            summary.observe(1, labels as String[])
+
+        then:
+            thrown(IllegalArgumentException.class)
+
+        where:
+            labels << [[], ["v1", ""], ["v1", "v2", "v3"]]
+    }
+
 }

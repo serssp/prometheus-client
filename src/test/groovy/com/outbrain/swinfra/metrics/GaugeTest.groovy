@@ -78,9 +78,54 @@ class GaugeTest extends Specification {
             1 * sampleConsumer.apply(NAME, expectedValue2, labelValues2 as List, null, null)
     }
 
+    def 'GaugeBuilder should provide value supplier with labels'() {
+        final double expectedValue = 239487234
+        given:
+            final String[] labelNames = ["label1", "label2"]
+            final String[] labelValues = ["val1", "val2"]
+            final Gauge gauge = new GaugeBuilder(NAME, HELP)
+                    .withLabels(labelNames)
+                    .withValueSupplier({ expectedValue } as DoubleSupplier, labelValues)
+                    .build()
+
+        when:
+            gauge.forEachSample(sampleConsumer)
+        then:
+            1 * sampleConsumer.apply(NAME, expectedValue, labelValues as List, null, null)
+    }
+
+    def 'GaugeBuilder should override value supplier if several suppliers passed with same values'() {
+        final double expectedValue = 239487234
+        given:
+            final String[] labelNames = ["label1", "label2"]
+            final String[] labelValues = ["val1", "val2"]
+            final Gauge gauge = new GaugeBuilder(NAME, HELP)
+                    .withLabels(labelNames)
+                    .withValueSupplier({ 1 } as DoubleSupplier, labelValues)
+                    .withValueSupplier({ 2 } as DoubleSupplier, labelValues)
+                    .withValueSupplier({ expectedValue } as DoubleSupplier, labelValues)
+                    .build()
+
+        when:
+            gauge.forEachSample(sampleConsumer)
+        then:
+            1 * sampleConsumer.apply(NAME, expectedValue, labelValues as List, null, null)
+    }
+
+    def 'GaugeBuilder should throw an exception when its built without any valueSupplier'() {
+        when:
+            new GaugeBuilder(NAME, HELP)
+                    .build()
+
+        then:
+            def ex = thrown IllegalArgumentException
+            ex.message.contains("value supplier")
+    }
+
     def 'GaugeBuilder should throw an exception on null value supplier'() {
         when:
             new GaugeBuilder(NAME, HELP)
+                    .withLabels("label1", "label2")
                     .withValueSupplier(null, "val1", "val2")
                     .build()
 

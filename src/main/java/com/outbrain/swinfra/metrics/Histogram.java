@@ -112,6 +112,7 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> implements Timi
   }
 
   public void observe(final double value, final String... labelValues) {
+    validateLabelValues(labelValues);
     metricForLabels(labelValues).add(value);
   }
 
