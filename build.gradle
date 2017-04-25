@@ -2,7 +2,7 @@ plugins {
     id 'idea'
     id 'groovy'
     id 'maven'
-    id "com.jfrog.bintray" version "1.7"
+    id 'com.jfrog.bintray' version '1.7'
 }
 
 group = 'com.outbrain.swinfra'
