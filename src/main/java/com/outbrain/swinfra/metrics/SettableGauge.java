@@ -7,7 +7,7 @@ import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 import com.outbrain.swinfra.metrics.utils.MetricType;
 
-import java.io.IOException;
+import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
@@ -53,9 +53,12 @@ public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
   }
 
   @Override
-  public void forEachSample(final SampleConsumer sampleConsumer) throws IOException {
+  public void forEachSample(final Consumer<Sample> sampleConsumer) {
     for (final MetricData<SettableDoubleSupplier> metricData : allMetricData()) {
-      sampleConsumer.apply(getName(), metricData.getMetric().getAsDouble(), metricData.getLabelValues(), null, null);
+      final double value = metricData.getMetric().getAsDouble();
+      final Sample sample = new Sample(getName(), value, metricData.getLabelValues(), null, null);
+
+      sampleConsumer.accept(sample);
     }
   }
 

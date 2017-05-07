@@ -3,6 +3,8 @@ package com.outbrain.swinfra.metrics
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.function.Consumer
+
 import static com.outbrain.swinfra.metrics.Counter.CounterBuilder
 
 class CounterTest extends Specification {
@@ -11,7 +13,7 @@ class CounterTest extends Specification {
     private static final String HELP = "HELP"
 
 
-    private final SampleConsumer sampleConsumer = Mock(SampleConsumer)
+    private final Consumer<Sample> sampleConsumer = Mock(Consumer)
 
     @Unroll
     def 'Counter should return #expectedValue after incrementing #increment times'() {
@@ -67,8 +69,8 @@ class CounterTest extends Specification {
         when:
             counter.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME, 5, labelValues1 as List, null, null)
-            1 * sampleConsumer.apply(NAME, 6, labelValues2 as List, null, null)
+            1 * sampleConsumer.accept(new Sample(NAME, 5, labelValues1 as List, null, null))
+            1 * sampleConsumer.accept(new Sample(NAME, 6, labelValues2 as List, null, null))
     }
 
     def 'Counter should return the correct samples with subsystem defined'() {
@@ -83,7 +85,7 @@ class CounterTest extends Specification {
         when:
             counter.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(fullName, 0, [], null, null)
+            1 * sampleConsumer.accept(new Sample(fullName, 0, [], null, null))
     }
 
     def 'Counter should return the correct samples with namespace and subsystem defined'() {
@@ -99,7 +101,7 @@ class CounterTest extends Specification {
         when:
             counter.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(fullName, 0, [], null, null)
+            1 * sampleConsumer.accept(new Sample(fullName, 0, [], null, null))
     }
 
     def 'Counter should return the correct samples with namespace defined'() {
@@ -113,7 +115,7 @@ class CounterTest extends Specification {
         when:
             counter.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(fullName, 0, [], null, null)
+            1 * sampleConsumer.accept(new Sample(fullName, 0, [], null, null))
     }
 
     def 'Counter without labels should throw an exception when attempting to increment with labels'() {

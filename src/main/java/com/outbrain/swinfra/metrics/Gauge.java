@@ -7,10 +7,10 @@ import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 import com.outbrain.swinfra.metrics.utils.MetricType;
 import org.apache.commons.lang3.Validate;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
@@ -46,15 +46,18 @@ public class Gauge extends AbstractMetric<DoubleSupplier> {
   }
 
   @Override
-  public void forEachSample(final SampleConsumer sampleConsumer) throws IOException {
+  public void forEachSample(final Consumer<Sample> sampleConsumer) {
     for (final MetricData<DoubleSupplier> metricData : allMetricData()) {
-      sampleConsumer.apply(getName(), metricData.getMetric().getAsDouble(), metricData.getLabelValues(), null, null);
+      final double value = metricData.getMetric().getAsDouble();
+      final Sample sample = new Sample(getName(), value, metricData.getLabelValues(), null, null);
+
+      sampleConsumer.accept(sample);
     }
   }
 
   @Override
   ChildMetricRepo<DoubleSupplier> createChildMetricRepo() {
-    if (valueSuppliers.size() == 1 && getLabelNames().size() == 0) {
+    if (valueSuppliers.size() == 1 && getLabelNames().isEmpty()) {
       final DoubleSupplier gauge = valueSuppliers.values().iterator().next().getMetric();
       return new UnlabeledChildRepo<>(new MetricData<>(gauge));
     } else {

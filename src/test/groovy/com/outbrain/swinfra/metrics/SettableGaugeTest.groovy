@@ -2,6 +2,8 @@ package com.outbrain.swinfra.metrics
 
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 import static com.outbrain.swinfra.metrics.SettableGauge.SettableGaugeBuilder
 
 class SettableGaugeTest extends Specification {
@@ -9,7 +11,7 @@ class SettableGaugeTest extends Specification {
     private static final String NAME = "NAME"
     private static final String HELP = "HELP"
 
-    private final SampleConsumer sampleConsumer = Mock(SampleConsumer)
+    private final Consumer<Sample> sampleConsumer = Mock(Consumer)
 
 
     def 'SettableGauge should have the correct value'() {
@@ -48,7 +50,7 @@ class SettableGaugeTest extends Specification {
         when:
             settableGauge.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME, 0d, [], null, null)
+            1 * sampleConsumer.accept(new Sample(NAME, 0d, [], null, null))
     }
 
     def "SettableGauge with labels should return no samples when nothing was set"() {
@@ -68,13 +70,13 @@ class SettableGaugeTest extends Specification {
         when:
             settableGauge.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME, 1d, [], null, null)
+            1 * sampleConsumer.accept(new Sample(NAME, 1d, [], null, null))
 
         when:
             settableGauge.set(2d)
             settableGauge.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME, 2d, [], null, null)
+            1 * sampleConsumer.accept(new Sample(NAME, 2d, [], null, null))
 
     }
 
@@ -86,7 +88,7 @@ class SettableGaugeTest extends Specification {
         when:
             settableGauge.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME, 1d, ['value1'], null, null)
-            1 * sampleConsumer.apply(NAME, 2d, ['value2'], null, null)
+            1 * sampleConsumer.accept(new Sample(NAME, 1d, ['value1'], null, null))
+            1 * sampleConsumer.accept(new Sample(NAME, 2d, ['value2'], null, null))
     }
 }
