@@ -10,11 +10,11 @@ import com.outbrain.swinfra.metrics.timing.TimingMetric;
 import com.outbrain.swinfra.metrics.utils.MetricType;
 import org.apache.commons.lang3.Validate;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Consumer;
 import java.util.stream.DoubleStream;
 
 import static com.outbrain.swinfra.metrics.timing.Clock.DEFAULT_CLOCK;
@@ -76,7 +76,7 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> implements Timi
 
   @Override
   ChildMetricRepo<Buckets> createChildMetricRepo() {
-    if (getLabelNames().size() == 0) {
+    if (getLabelNames().isEmpty()) {
       return new UnlabeledChildRepo<>(new MetricData<>(new Buckets(buckets)));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
@@ -87,18 +87,23 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> implements Timi
   }
 
   @Override
-  public void forEachSample(final SampleConsumer sampleConsumer) throws IOException {
+  public void forEachSample(final Consumer<Sample> sampleConsumer) {
     for (final MetricData<Buckets> metricData : allMetricData()) {
       final List<String> labelValues = metricData.getLabelValues();
       final BucketValues bucketValues = metricData.getMetric().getValues();
       final String[] bucketBounds = metricData.getMetric().getBucketBoundsAsString();
+
       for (int i = 0; i < bucketBounds.length; i++) {
-        sampleConsumer.apply(bucketSampleName, bucketValues.getBuckets()[i], labelValues, BUCKET_LABEL, bucketBounds[i]);
+        final long value = bucketValues.getBuckets()[i];
+        final Sample sample = new Sample(bucketSampleName, value, labelValues, BUCKET_LABEL, bucketBounds[i]);
+
+        sampleConsumer.accept(sample);
       }
+
       //Add count and sum samples
       final long lastBucketValue = bucketValues.getBuckets()[bucketValues.getBuckets().length - 1];
-      sampleConsumer.apply(countSampleName, lastBucketValue, labelValues, null, null);
-      sampleConsumer.apply(sumSampleName, bucketValues.getSum(), labelValues, null, null);
+      sampleConsumer.accept(new Sample(countSampleName, lastBucketValue, labelValues, null, null));
+      sampleConsumer.accept(new Sample(sumSampleName, bucketValues.getSum(), labelValues, null, null));
     }
   }
 

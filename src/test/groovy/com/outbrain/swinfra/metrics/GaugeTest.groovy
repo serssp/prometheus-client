@@ -2,6 +2,7 @@ package com.outbrain.swinfra.metrics
 
 import spock.lang.Specification
 
+import java.util.function.Consumer
 import java.util.function.DoubleSupplier
 
 import static com.outbrain.swinfra.metrics.Gauge.GaugeBuilder
@@ -12,7 +13,7 @@ class GaugeTest extends Specification {
     private static final String HELP = "HELP"
 
 
-    private final SampleConsumer sampleConsumer = Mock(SampleConsumer)
+    private final Consumer<Sample> sampleConsumer = Mock(Consumer)
 
     def 'Gauge should have the correct value'() {
         final double expectedValue = 239487234
@@ -53,7 +54,7 @@ class GaugeTest extends Specification {
         when:
             gauge.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME, expectedValue, [], null, null)
+            1 * sampleConsumer.accept(new Sample(NAME, expectedValue, [], null, null))
     }
 
     def 'Gauge should return the correct samples with labels'() {
@@ -74,8 +75,8 @@ class GaugeTest extends Specification {
         when:
             gauge.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME, expectedValue1, labelValues1 as List, null, null)
-            1 * sampleConsumer.apply(NAME, expectedValue2, labelValues2 as List, null, null)
+            1 * sampleConsumer.accept(new Sample(NAME, expectedValue1, labelValues1 as List, null, null))
+            1 * sampleConsumer.accept(new Sample(NAME, expectedValue2, labelValues2 as List, null, null))
     }
 
     def 'GaugeBuilder should provide value supplier with labels'() {
@@ -92,7 +93,7 @@ class GaugeTest extends Specification {
                     .build()
 
         then:
-            gauge.getSample(sampleCreator) == metricFamilySamples
+            1 * sampleConsumer.accept(new Sample(NAME, expectedValue, labelValues as List, null, null))
     }
 
     def 'GaugeBuilder should override value supplier if several suppliers passed with same values'() {
@@ -111,7 +112,7 @@ class GaugeTest extends Specification {
                     .build()
 
         then:
-            gauge.getSample(sampleCreator) == metricFamilySamples
+            1 * sampleConsumer.accept(new Sample(NAME, expectedValue, labelValues as List, null, null))
     }
 
     def 'GaugeBuilder should throw an exception when its built without any valueSupplier'() {

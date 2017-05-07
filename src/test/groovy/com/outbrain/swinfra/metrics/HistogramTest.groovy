@@ -4,6 +4,8 @@ import com.outbrain.swinfra.metrics.timing.Timer
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.function.Consumer
+
 import static com.outbrain.swinfra.metrics.Histogram.*
 import static com.outbrain.swinfra.metrics.timing.TimingMetric.COUNT_SUFFIX
 import static com.outbrain.swinfra.metrics.timing.TimingMetric.SUM_SUFFIX
@@ -14,7 +16,7 @@ class HistogramTest extends Specification {
     private static final String NAME = "myHisto"
     private static final String HELP = "HELP"
 
-    private final SampleConsumer sampleConsumer = Mock(SampleConsumer)
+    private final Consumer<Sample> sampleConsumer = Mock(Consumer)
 
     def 'Histogram should return the correct type'() {
         given:
@@ -30,23 +32,23 @@ class HistogramTest extends Specification {
         when:
             histogram.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.005')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.01')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.025')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.05')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.075')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.1')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.25')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.5')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.75')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '1.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '2.5')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '5.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '7.5')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '10.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '+Inf')
-            1 * sampleConsumer.apply(NAME+SUM_SUFFIX, 0, [], null, null)
-            1 * sampleConsumer.apply(NAME+COUNT_SUFFIX, 0, [], null, null)
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.005'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.01'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.025'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.05'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.075'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.1'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.25'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.5'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.75'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '1.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '2.5'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '5.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '7.5'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '10.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '+Inf'))
+            1 * sampleConsumer.accept(new Sample(NAME+SUM_SUFFIX, 0, [], null, null))
+            1 * sampleConsumer.accept(new Sample(NAME+COUNT_SUFFIX, 0, [], null, null))
 
     }
 
@@ -63,12 +65,12 @@ class HistogramTest extends Specification {
         when:
             histogram.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 1, [], BUCKET_LABEL, '1.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 3, [], BUCKET_LABEL, '10.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 5, [], BUCKET_LABEL, '100.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 6, [], BUCKET_LABEL, '+Inf')
-            1 * sampleConsumer.apply(NAME+SUM_SUFFIX, 1 + 5 + 5 + 50 + 50 + 150, [], null, null)
-            1 * sampleConsumer.apply(NAME+COUNT_SUFFIX, 6, [], null, null)
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 1, [], BUCKET_LABEL, '1.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 3, [], BUCKET_LABEL, '10.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 5, [], BUCKET_LABEL, '100.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 6, [], BUCKET_LABEL, '+Inf'))
+            1 * sampleConsumer.accept(new Sample(NAME+SUM_SUFFIX, 1 + 5 + 5 + 50 + 50 + 150, [], null, null))
+            1 * sampleConsumer.accept(new Sample(NAME+COUNT_SUFFIX, 6, [], null, null))
     }
 
     def 'Histogram with defined buckets and labels should return correct samples with correct lables'() {
@@ -90,25 +92,25 @@ class HistogramTest extends Specification {
         when:
             histogram.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 1, ['val1'], BUCKET_LABEL, '1.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 3, ['val1'], BUCKET_LABEL, '10.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 5, ['val1'], BUCKET_LABEL, '100.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 6, ['val1'], BUCKET_LABEL, '+Inf')
-            1 * sampleConsumer.apply(NAME+SUM_SUFFIX, 1 + 5 + 5 + 50 + 50 + 150, ['val1'], null, null)
-            1 * sampleConsumer.apply(NAME+COUNT_SUFFIX, 6, ['val1'], null, null)
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 1, ['val2'], BUCKET_LABEL, '1.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 3, ['val2'], BUCKET_LABEL, '10.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 5, ['val2'], BUCKET_LABEL, '100.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 6, ['val2'], BUCKET_LABEL, '+Inf')
-            1 * sampleConsumer.apply(NAME+SUM_SUFFIX, 1 + 5 + 5 + 50 + 50 + 150, ['val2'], null, null)
-            1 * sampleConsumer.apply(NAME+COUNT_SUFFIX, 6, ['val2'], null, null)
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 1, ['val3'], BUCKET_LABEL, '1.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 3, ['val3'], BUCKET_LABEL, '10.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 5, ['val3'], BUCKET_LABEL, '100.0')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 6, ['val3'], BUCKET_LABEL, '+Inf')
-            1 * sampleConsumer.apply(NAME+SUM_SUFFIX, 1 + 5 + 5 + 50 + 50 + 150, ['val3'], null, null)
-            1 * sampleConsumer.apply(NAME+COUNT_SUFFIX, 6, ['val3'], null, null)
-            0 * sampleConsumer.apply(_,_,_,_,_)
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 1, ['val1'], BUCKET_LABEL, '1.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 3, ['val1'], BUCKET_LABEL, '10.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 5, ['val1'], BUCKET_LABEL, '100.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 6, ['val1'], BUCKET_LABEL, '+Inf'))
+            1 * sampleConsumer.accept(new Sample(NAME+SUM_SUFFIX, 1 + 5 + 5 + 50 + 50 + 150, ['val1'], null, null))
+            1 * sampleConsumer.accept(new Sample(NAME+COUNT_SUFFIX, 6, ['val1'], null, null))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 1, ['val2'], BUCKET_LABEL, '1.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 3, ['val2'], BUCKET_LABEL, '10.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 5, ['val2'], BUCKET_LABEL, '100.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 6, ['val2'], BUCKET_LABEL, '+Inf'))
+            1 * sampleConsumer.accept(new Sample(NAME+SUM_SUFFIX, 1 + 5 + 5 + 50 + 50 + 150, ['val2'], null, null))
+            1 * sampleConsumer.accept(new Sample(NAME+COUNT_SUFFIX, 6, ['val2'], null, null))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 1, ['val3'], BUCKET_LABEL, '1.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 3, ['val3'], BUCKET_LABEL, '10.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 5, ['val3'], BUCKET_LABEL, '100.0'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 6, ['val3'], BUCKET_LABEL, '+Inf'))
+            1 * sampleConsumer.accept(new Sample(NAME+SUM_SUFFIX, 1 + 5 + 5 + 50 + 50 + 150, ['val3'], null, null))
+            1 * sampleConsumer.accept(new Sample(NAME+COUNT_SUFFIX, 6, ['val3'], null, null))
+            0 * sampleConsumer.accept(_)
     }
 
     @Unroll
@@ -133,9 +135,9 @@ class HistogramTest extends Specification {
         when:
             histogram.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.5')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '+Inf')
-            0 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, _, _, BUCKET_LABEL, _)
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.5'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '+Inf'))
+            0 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, null, BUCKET_LABEL, null))
     }
 
     def "A Histogram with equal width buckets should return the correct buckets"() {
@@ -144,12 +146,12 @@ class HistogramTest extends Specification {
         when:
             histogram.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.5')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '1.5')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '2.5')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '3.5')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '+Inf')
-            0 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, _)
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '0.5'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '1.5'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '2.5'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '3.5'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, '+Inf'))
+            0 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 0, [], BUCKET_LABEL, null))
     }
 
     def "A timer should add the measured samples to the histogram"() {
@@ -165,11 +167,11 @@ class HistogramTest extends Specification {
         when:
             histogram.forEachSample(sampleConsumer)
         then:
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 1, [], BUCKET_LABEL, '1.5')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 2, [], BUCKET_LABEL, '2.5')
-            1 * sampleConsumer.apply(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 3, [], BUCKET_LABEL, '+Inf')
-            1 * sampleConsumer.apply(NAME+SUM_SUFFIX, 6, [], null, null)
-            1 * sampleConsumer.apply(NAME+COUNT_SUFFIX, 3, [], null, null)
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 1, [], BUCKET_LABEL, '1.5'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 2, [], BUCKET_LABEL, '2.5'))
+            1 * sampleConsumer.accept(new Sample(NAME+SAMPLE_NAME_BUCKET_SUFFIX, 3, [], BUCKET_LABEL, '+Inf'))
+            1 * sampleConsumer.accept(new Sample(NAME+SUM_SUFFIX, 6, [], null, null))
+            1 * sampleConsumer.accept(new Sample(NAME+COUNT_SUFFIX, 3, [], null, null))
     }
 
     def 'Histogram without labels should throw an exception when attempting to observe a value with labels'() {

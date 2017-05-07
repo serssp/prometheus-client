@@ -16,9 +16,9 @@ import com.outbrain.swinfra.metrics.timing.Timer;
 import com.outbrain.swinfra.metrics.timing.TimingMetric;
 import com.outbrain.swinfra.metrics.utils.MetricType;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.outbrain.swinfra.metrics.timing.Clock.DEFAULT_CLOCK;
@@ -76,7 +76,7 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
 
   @Override
   ChildMetricRepo<Histogram> createChildMetricRepo() {
-    if (getLabelNames().size() == 0) {
+    if (getLabelNames().isEmpty()) {
       return new UnlabeledChildRepo<>(new MetricData<>(createHistogram()));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
@@ -96,24 +96,24 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
   }
 
   @Override
-  public void forEachSample(final SampleConsumer sampleConsumer) throws IOException {
+  public void forEachSample(final Consumer<Sample> sampleConsumer) {
     for (final MetricData<Histogram> metricData : allMetricData()) {
       final List<String> labelValues = metricData.getLabelValues();
       final Snapshot snapshot = metricData.getMetric().getSnapshot();
       final String name = getName();
-      sampleConsumer.apply(name, snapshot.getMedian(), labelValues, QUANTILE_LABEL,"0.5");
-      sampleConsumer.apply(name, snapshot.get75thPercentile(), labelValues, QUANTILE_LABEL,"0.75");
-      sampleConsumer.apply(name, snapshot.get95thPercentile(), labelValues, QUANTILE_LABEL,"0.95");
-      sampleConsumer.apply(name, snapshot.get98thPercentile(), labelValues, QUANTILE_LABEL,"0.98");
-      sampleConsumer.apply(name, snapshot.get99thPercentile(), labelValues, QUANTILE_LABEL,"0.99");
-      sampleConsumer.apply(name, snapshot.get999thPercentile(), labelValues, QUANTILE_LABEL,"0.999");
-      sampleConsumer.apply(countSampleName, metricData.getMetric().getCount(), labelValues, null, null);
+      sampleConsumer.accept(new Sample(name, snapshot.getMedian(), labelValues, QUANTILE_LABEL, "0.5"));
+      sampleConsumer.accept(new Sample(name, snapshot.get75thPercentile(), labelValues, QUANTILE_LABEL, "0.75"));
+      sampleConsumer.accept(new Sample(name, snapshot.get95thPercentile(), labelValues, QUANTILE_LABEL, "0.95"));
+      sampleConsumer.accept(new Sample(name, snapshot.get98thPercentile(), labelValues, QUANTILE_LABEL, "0.98"));
+      sampleConsumer.accept(new Sample(name, snapshot.get99thPercentile(), labelValues, QUANTILE_LABEL, "0.99"));
+      sampleConsumer.accept(new Sample(name, snapshot.get999thPercentile(), labelValues, QUANTILE_LABEL, "0.999"));
+      sampleConsumer.accept(new Sample(countSampleName, metricData.getMetric().getCount(), labelValues, null, null));
 
       long sum = 0;
       for (final long value : snapshot.getValues()) {
         sum += value;
       }
-      sampleConsumer.apply(sumSampleName, sum, labelValues, null, null);
+      sampleConsumer.accept(new Sample(sumSampleName, sum, labelValues, null, null));
     }
   }
 
