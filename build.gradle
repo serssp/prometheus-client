@@ -20,7 +20,8 @@ sourceSets {
 dependencies {
     compile(
         'io.dropwizard.metrics:metrics-core:3.1.2',
-        'org.apache.commons:commons-lang3:3.3.2'
+        'org.apache.commons:commons-lang3:3.3.2',
+        'com.google.protobuf:protobuf-java:2.6.1'
     )
 
     testCompile(
