@@ -8,6 +8,7 @@ plugins {
 }
 
 group = 'com.outbrain.swinfra'
+version = '0.18-SNAPSHOT'
 
 repositories {
     mavenCentral()
