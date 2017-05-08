@@ -171,14 +171,18 @@ public class ProtobufFormatter implements CollectorExporter {
       if (Histogram.BUCKET_LABEL.equals(sample.getExtraLabelName())) {
         final Metrics.Bucket bucket = Metrics.Bucket.newBuilder().
           setCumulativeCount((long) sample.getValue()).
-          setUpperBound(Double.parseDouble(sample.getExtraLabelValue())).
+          setUpperBound("+Inf".equals(sample.getExtraLabelValue()) ?
+            Double.POSITIVE_INFINITY :
+            Double.parseDouble(sample.getExtraLabelValue())).
           build();
 
         histogramBuilder.addBucket(bucket);
+        return;
       }
 
       if (sample.getName().endsWith(TimingMetric.COUNT_SUFFIX)) {
         histogramBuilder.setSampleCount((long) sample.getValue());
+        return;
       }
 
       if (sample.getName().endsWith(TimingMetric.SUM_SUFFIX)) {
