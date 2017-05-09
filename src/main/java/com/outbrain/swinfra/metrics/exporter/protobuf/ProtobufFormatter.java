@@ -214,7 +214,7 @@ public class ProtobufFormatter implements CollectorExporter {
   }
 
   private void resetMetricBuilderLabels(final Metrics.Metric.Builder metricBuilder, final List<String> labelValues, final int currentCount) {
-    for (int i = 0; i < labelValues.size(); i++) {
+    for (int i = labelValues.size() - 1; i >= 0; i--) {
       metricBuilder.removeLabel(currentCount + i);
     }
   }
