@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
@@ -96,11 +97,8 @@ public class ProtobufFormatter implements CollectorExporter {
           setValue(sample.getValue()).
           build();
 
-      setSampleLabels(metricBuilder, metricData.getLabelNames(), sample.getLabelValues());
+      addMetric(metricData, familyBuilder, metricBuilder, sample.getLabelValues(), (m) -> metricBuilder.setGauge(m).build(), gauge);
 
-      final Metrics.Metric metric = metricBuilder.setGauge(gauge).build();
-
-      familyBuilder.addMetric(metric);
     });
   }
 
@@ -112,11 +110,8 @@ public class ProtobufFormatter implements CollectorExporter {
         setValue(sample.getValue()).
         build();
 
-      setSampleLabels(metricBuilder, metricData.getLabelNames(), sample.getLabelValues());
+      addMetric(metricData, familyBuilder, metricBuilder, sample.getLabelValues(), (m) -> metricBuilder.setCounter(m).build(), counter);
 
-      final Metrics.Metric metric = metricBuilder.setCounter(counter).build();
-
-      familyBuilder.addMetric(metric);
     });
   }
 
@@ -148,12 +143,8 @@ public class ProtobufFormatter implements CollectorExporter {
     });
     summaryBuilderByLabelValues.forEach((labelValues, summaryBuilder) -> {
 
-      final int currentCount = metricBuilder.getLabelCount();
-      setSampleLabels(metricBuilder, metricData.getLabelNames(), labelValues);
-      final Metrics.Metric metric = metricBuilder.setSummary(summaryBuilder.build()).build();
-      resetMetricBuilderLabels(metricBuilder, labelValues, currentCount);
+      addMetric(metricData, familyBuilder, metricBuilder, labelValues, (m) -> metricBuilder.setSummary(m).build(), summaryBuilder.build());
 
-      familyBuilder.addMetric(metric);
     });
   }
 
@@ -187,14 +178,7 @@ public class ProtobufFormatter implements CollectorExporter {
     });
 
     histogramBuilderByLabelValues.forEach((labelValues, histogramBuilder) -> {
-
-      final int currentCount = metricBuilder.getLabelCount();
-
-      setSampleLabels(metricBuilder, metricData.getLabelNames(), labelValues);
-      final Metrics.Metric metric = metricBuilder.setHistogram(histogramBuilder.build()).build();
-      resetMetricBuilderLabels(metricBuilder, labelValues, currentCount);
-
-      familyBuilder.addMetric(metric);
+      addMetric(metricData, familyBuilder, metricBuilder, labelValues, (m) -> metricBuilder.setHistogram(m).build(), histogramBuilder.build());
     });
   }
 
@@ -206,11 +190,26 @@ public class ProtobufFormatter implements CollectorExporter {
     return sample.getName().endsWith(TimingMetric.COUNT_SUFFIX);
   }
 
+  private <T> void addMetric(final Metric metricData,
+                             final Metrics.MetricFamily.Builder familyBuilder,
+                             final Metrics.Metric.Builder metricBuilder,
+                             final List<String> labelValues,
+                             final Function<T, Metrics.Metric> buildMetric,
+                             final T specificTypeMetric)  {
 
-  private void setSampleLabels(final Metrics.Metric.Builder metricBuilder, final List<String> labelNames, final List<String> labelValues) {
+    final int previousCount = setSampleLabels(metricBuilder, metricData.getLabelNames(), labelValues);
+    final Metrics.Metric metric = buildMetric.apply(specificTypeMetric);
+    resetMetricBuilderLabels(metricBuilder, labelValues, previousCount);
+
+    familyBuilder.addMetric(metric);
+  }
+
+  private int setSampleLabels(final Metrics.Metric.Builder metricBuilder, final List<String> labelNames, final List<String> labelValues) {
+    final int labelsCount = metricBuilder.getLabelCount();
     for (int i = 0; i < labelValues.size(); i++) {
       metricBuilder.addLabel(createLabel(labelNames.get(i), labelValues.get(i)));
     }
+    return labelsCount;
   }
 
   private void resetMetricBuilderLabels(final Metrics.Metric.Builder metricBuilder, final List<String> labelValues, final int currentCount) {

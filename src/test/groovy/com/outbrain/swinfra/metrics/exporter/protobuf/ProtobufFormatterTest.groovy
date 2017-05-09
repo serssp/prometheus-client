@@ -26,8 +26,10 @@ class ProtobufFormatterTest extends Specification {
             Counter counter2 = new Counter.CounterBuilder('Counter2', 'help').withLabels('label').build()
             counter2.inc(19, 'A')
             counter2.inc(23, 'B')
+            Counter counter3 = new Counter.CounterBuilder('Counter3', 'help').withLabels('label1', 'label2').build()
+            counter3.inc(29, 'A', 'B')
 
-            collector.iterator() >> [counter1, counter2].iterator()
+            collector.iterator() >> [counter1, counter2, counter3].iterator()
             collector.staticLabels >> ['a': 'b']
 
         when:
@@ -36,10 +38,10 @@ class ProtobufFormatterTest extends Specification {
             List<MetricFamily> families = deserialize(output)
 
         then:
-            2 == families.size()
+            3 == families.size()
 
             [COUNTER] as Set == families.collect() { it.type } as Set
-            ['Counter1', 'Counter2'] as Set == families.collect() { it.name } as Set
+            ['Counter1', 'Counter2', 'Counter3'] as Set == families.collect() { it.name } as Set
             ['help'] as Set == families.collect() { it.help } as Set
 
             1 == families.find() { it.name == 'Counter1' }.metricList.size()
@@ -49,6 +51,10 @@ class ProtobufFormatterTest extends Specification {
             2 == families.find() { it.name == 'Counter2' }.metricList.size()
             ['label': 'A', 'a': 'b'] == families.find { it.name == 'Counter2'}.metricList.find { it.counter.value == 19 }.labelList.collectEntries { [(it.name): it.value] }
             ['label': 'B', 'a': 'b'] == families.find { it.name == 'Counter2'}.metricList.find { it.counter.value == 23 }.labelList.collectEntries { [(it.name): it.value] }
+
+            1 == families.find() { it.name == 'Counter3' }.metricList.size()
+            29d == families.find { it.name == 'Counter3'}.metricList.first().counter.value
+            ['label1': 'A', 'label2': 'B', 'a': 'b'] == families.find { it.name == 'Counter3'}.metricList.first().labelList.collectEntries { [(it.name): it.value] }
     }
 
 
@@ -59,8 +65,9 @@ class ProtobufFormatterTest extends Specification {
                     withValueSupplier({ 19d } as DoubleSupplier, 'A').
                     withValueSupplier({ 23d } as DoubleSupplier, 'B').
                     build()
+            Gauge gauge3 = new Gauge.GaugeBuilder('Gauge3', 'help').withLabels('label1', 'label2').withValueSupplier({ 29d } as DoubleSupplier, 'A', 'B').build()
 
-            collector.iterator() >> [gauge1, gauge2].iterator()
+            collector.iterator() >> [gauge1, gauge2, gauge3].iterator()
             collector.staticLabels >> ['a': 'b']
 
         when:
@@ -69,10 +76,10 @@ class ProtobufFormatterTest extends Specification {
             List<MetricFamily> families = deserialize(output)
 
         then:
-            2 == families.size()
+            3 == families.size()
 
             [GAUGE] as Set == families.collect() { it.type } as Set
-            ['Gauge1', 'Gauge2'] as Set == families.collect() { it.name } as Set
+            ['Gauge1', 'Gauge2', 'Gauge3'] as Set == families.collect() { it.name } as Set
             ['help'] as Set == families.collect() { it.help } as Set
 
             1 == families.find() { it.name == 'Gauge1' }.metricList.size()
@@ -82,6 +89,10 @@ class ProtobufFormatterTest extends Specification {
             2 == families.find() { it.name == 'Gauge2' }.metricList.size()
             ['label': 'A', 'a': 'b'] == families.find { it.name == 'Gauge2'}.metricList.find { it.gauge.value == 19 }.labelList.collectEntries { [(it.name): it.value] }
             ['label': 'B', 'a': 'b'] == families.find { it.name == 'Gauge2'}.metricList.find { it.gauge.value == 23 }.labelList.collectEntries { [(it.name): it.value] }
+
+            1 == families.find() { it.name == 'Gauge3' }.metricList.size()
+            29d == families.find { it.name == 'Gauge3'}.metricList.first().gauge.value
+            ['label1': 'A', 'label2': 'B', 'a': 'b'] == families.find { it.name == 'Gauge3'}.metricList.first().labelList.collectEntries { [(it.name): it.value] }
     }
 
     def 'appends a collector summary metric samples in protobuf format to given output buffer'() {
@@ -93,8 +104,10 @@ class ProtobufFormatterTest extends Specification {
             Summary summary2 = new Summary.SummaryBuilder('Summary2', 'help').withLabels('label').build()
             summary2.observe(17, 'A')
             summary2.observe(19, 'B')
+            Summary summary3 = new Summary.SummaryBuilder('Summary3', 'help').withLabels('label1', 'label2').build()
+            summary3.observe(29, 'A', 'B')
 
-            collector.iterator() >> [summary1, summary2].iterator()
+            collector.iterator() >> [summary1, summary2, summary3].iterator()
             collector.staticLabels >> ['a': 'b']
 
         when:
@@ -103,10 +116,10 @@ class ProtobufFormatterTest extends Specification {
             List<MetricFamily> families = deserialize(output)
 
         then:
-            2 == families.size()
+            3 == families.size()
 
             [SUMMARY] as Set == families.collect() { it.type } as Set
-            ['Summary1', 'Summary2'] as Set == families.collect() { it.name } as Set
+            ['Summary1', 'Summary2', 'Summary3'] as Set == families.collect() { it.name } as Set
             ['help'] as Set == families.collect() { it.help } as Set
 
             1 == families.find() { it.name == 'Summary1' }.metricList.size()
@@ -130,6 +143,14 @@ class ProtobufFormatterTest extends Specification {
             [quantileOf(0.5d, 19), quantileOf(0.75d, 19),
              quantileOf(0.95d, 19), quantileOf(0.98d, 19),
              quantileOf(0.99d, 19), quantileOf(0.999d, 19)] as Set == families.find { it.name == 'Summary2'}.metricList.find { it.summary.sampleSum == 19 }.summary.quantileList as Set
+
+            1 == families.find() { it.name == 'Summary3' }.metricList.size()
+            29d == families.find { it.name == 'Summary3'}.metricList.first().summary.sampleSum
+            1L == families.find { it.name == 'Summary3'}.metricList.first().summary.sampleCount
+            [quantileOf(0.5d, 29), quantileOf(0.75d, 29),
+             quantileOf(0.95d, 29), quantileOf(0.98d, 29),
+             quantileOf(0.99d, 29), quantileOf(0.999d, 29)] as Set == families.find { it.name == 'Summary3'}.metricList.first().summary.quantileList as Set
+            ['label1': 'A', 'label2': 'B', 'a': 'b'] == families.find { it.name == 'Summary3'}.metricList.first().labelList.collectEntries { [(it.name): it.value] }
     }
 
     def 'appends a collector histogram metric samples in protobuf format to given output buffer'() {
