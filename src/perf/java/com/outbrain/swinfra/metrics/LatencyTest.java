@@ -2,7 +2,9 @@ package com.outbrain.swinfra.metrics;
 
 import com.outbrain.swinfra.metrics.client.IoPrometheusClient;
 import com.outbrain.swinfra.metrics.client.OutbrainClient;
+import com.outbrain.swinfra.metrics.client.OutputMode;
 import com.outbrain.swinfra.metrics.client.PerfTestClient;
+import com.outbrain.swinfra.metrics.exporter.CollectorRegistryExporterFactory;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -38,21 +40,29 @@ public class LatencyTest {
     private ByteArrayOutputStream currentBuffer;
 
 
-    private final OutbrainClient outbrainClient = new OutbrainClient();
+    private final OutbrainClient outbrainTextClient = new OutbrainClient(OutputMode.TEXT, CollectorRegistryExporterFactory.TEXT_004);
+    private final OutbrainClient outbrainProtobufClient = new OutbrainClient(OutputMode.PROTOBUF, CollectorRegistryExporterFactory.PROTOBUF);
     private final IoPrometheusClient ioPrometheusClient = new IoPrometheusClient();
 
     @Benchmark
     @BenchmarkMode(Mode.SampleTime)
     @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    public void measurePrometheusPullSamplesThroughput() throws InterruptedException {
+    public void measurePrometheusSamplesTextExportLatency() throws InterruptedException {
         measureLatency(ioPrometheusClient);
     }
 
     @Benchmark
     @BenchmarkMode(Mode.SampleTime)
     @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    public void measureSampleConsumerThroughput() throws InterruptedException {
-        measureLatency(outbrainClient);
+    public void measureSampleConsumerTextExportLatency() throws InterruptedException {
+        measureLatency(outbrainTextClient);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.SampleTime)
+    @OutputTimeUnit(TimeUnit.MILLISECONDS)
+    public void measureSampleConsumerProtobufExportLatency() throws InterruptedException {
+        measureLatency(outbrainProtobufClient);
     }
 
     private void measureLatency(final PerfTestClient client) {
@@ -68,12 +78,13 @@ public class LatencyTest {
 
     @Setup
     public void setUp() {
-        outbrainClient.setUp();
+        outbrainTextClient.setUp();
+        outbrainProtobufClient.setUp();
         ioPrometheusClient.setUp();
     }
 
     @TearDown
     public void verify() throws Exception {
-        currentClient.verify(currentBuffer.toString("UTF-8"));
+        currentClient.verify(currentBuffer.toByteArray());
     }
 }

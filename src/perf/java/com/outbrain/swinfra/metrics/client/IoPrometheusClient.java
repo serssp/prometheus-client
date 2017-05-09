@@ -10,14 +10,17 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IoPrometheusClient extends AbstractClient {
+public class IoPrometheusClient extends AbstractPerfClient {
 
     private CollectorRegistry collectorRegistry;
+
+    public IoPrometheusClient() {
+        super(OutputMode.TEXT);
+    }
 
 
     @Override
     public void setUp() {
-        super.setUp();
         collectorRegistry = new CollectorRegistry();
         collectorRegistry.register(createPrometheusCollector());
     }

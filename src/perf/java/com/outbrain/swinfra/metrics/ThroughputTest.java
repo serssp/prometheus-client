@@ -2,7 +2,9 @@ package com.outbrain.swinfra.metrics;
 
 import com.outbrain.swinfra.metrics.client.IoPrometheusClient;
 import com.outbrain.swinfra.metrics.client.OutbrainClient;
+import com.outbrain.swinfra.metrics.client.OutputMode;
 import com.outbrain.swinfra.metrics.client.PerfTestClient;
+import com.outbrain.swinfra.metrics.exporter.CollectorRegistryExporterFactory;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -24,24 +26,32 @@ import java.util.concurrent.TimeUnit;
 public class ThroughputTest {
 
     private PerfTestClient currentClient;
-    private String output;
+    private byte[] output;
 
 
-    private final OutbrainClient outbrainClient = new OutbrainClient();
+    private final OutbrainClient outbrainTextClient = new OutbrainClient(OutputMode.TEXT, CollectorRegistryExporterFactory.TEXT_004);
+    private final OutbrainClient outbrainProtobufClient = new OutbrainClient(OutputMode.PROTOBUF, CollectorRegistryExporterFactory.PROTOBUF);
     private final IoPrometheusClient ioPrometheusClient = new IoPrometheusClient();
 
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public void measurePrometheusPullSamplesThroughput() throws InterruptedException {
+    public void measurePrometheusSamplesTextExportThroughput() throws InterruptedException {
         measureThroughput(ioPrometheusClient);
     }
 
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public void measureSampleConsumerThroughput() throws InterruptedException {
-        measureThroughput(outbrainClient);
+    public void measureSampleConsumerTextExportThroughput() throws InterruptedException {
+        measureThroughput(outbrainTextClient);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    public void measureSampleConsumerProtobufExportThroughput() throws InterruptedException {
+        measureThroughput(outbrainProtobufClient);
     }
 
     private void measureThroughput(final PerfTestClient client) {
@@ -51,7 +61,8 @@ public class ThroughputTest {
 
     @Setup
     public void setUp() {
-        outbrainClient.setUp();
+        outbrainTextClient.setUp();
+        outbrainProtobufClient.setUp();
         ioPrometheusClient.setUp();
     }
 
