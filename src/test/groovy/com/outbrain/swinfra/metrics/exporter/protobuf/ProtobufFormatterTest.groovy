@@ -138,9 +138,9 @@ class ProtobufFormatterTest extends Specification {
             histogram1.observe(1)
             histogram1.observe(2)
             histogram1.observe(3)
-            Histogram histogram2 = new Histogram.HistogramBuilder('Histogram2', 'help').withEqualWidthBuckets(1, 8, 3).withLabels('label').build()
-            histogram2.observe(17, 'A')
-            histogram2.observe(19, 'B')
+            Histogram histogram2 = new Histogram.HistogramBuilder('Histogram2', 'help').withEqualWidthBuckets(1, 8, 3).withLabels('label1', 'label2').build()
+            histogram2.observe(17, 'A1', 'A2')
+            histogram2.observe(19, 'B1', 'B2')
 
             collector.iterator() >> [histogram1, histogram2].iterator()
             collector.staticLabels >> ['a': 'b']
@@ -168,12 +168,12 @@ class ProtobufFormatterTest extends Specification {
             2 == families.find() { it.name == 'Histogram2' }.metricList.size()
 
             1L == families.find { it.name == 'Histogram2'}.metricList.find { it.histogram.sampleSum == 17 }.histogram.sampleCount
-            ['label': 'A', 'a': 'b'] == families.find { it.name == 'Histogram2'}.metricList.find { it.histogram.sampleSum == 17 }.labelList.collectEntries { [(it.name): it.value] }
+            ['label1': 'A1', 'label2': 'A2', 'a': 'b'] == families.find { it.name == 'Histogram2'}.metricList.find { it.histogram.sampleSum == 17 }.labelList.collectEntries { [(it.name): it.value] }
             [bucketOf(1d, 0), bucketOf(9d, 0),
              bucketOf(17d, 1), bucketOf(POSITIVE_INFINITY, 1)] as Set == families.find { it.name == 'Histogram2'}.metricList.find { it.histogram.sampleSum == 17 }.histogram.bucketList as Set
 
             1L == families.find { it.name == 'Histogram2'}.metricList.find { it.histogram.sampleSum == 19 }.histogram.sampleCount
-            ['label': 'B', 'a': 'b'] == families.find { it.name == 'Histogram2'}.metricList.find { it.histogram.sampleSum == 19 }.labelList.collectEntries { [(it.name): it.value] }
+            ['label1': 'B1', 'label2': 'B2', 'a': 'b'] == families.find { it.name == 'Histogram2'}.metricList.find { it.histogram.sampleSum == 19 }.labelList.collectEntries { [(it.name): it.value] }
             [bucketOf(1d, 0), bucketOf(9d, 0),
              bucketOf(17d, 0), bucketOf(POSITIVE_INFINITY, 1)] as Set == families.find { it.name == 'Histogram2'}.metricList.find { it.histogram.sampleSum == 19 }.histogram.bucketList as Set
     }
