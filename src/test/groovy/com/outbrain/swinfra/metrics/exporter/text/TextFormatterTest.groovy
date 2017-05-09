@@ -15,7 +15,7 @@ class TextFormatterTest extends Specification {
             MetricCollector collector = Mock(MetricCollector)
             Counter counter1 = new Counter.CounterBuilder('Counter1', 'help').build()
             counter1.inc(17)
-            Counter counter2 = new Counter.CounterBuilder('Counter2', 'help').withLabels('label')build()
+            Counter counter2 = new Counter.CounterBuilder('Counter2', 'help').withLabels('label').build()
             counter2.inc(19, 'labelValue')
             collector.iterator() >> [counter1, counter2].iterator()
             collector.staticLabels >> ['a':'b']
