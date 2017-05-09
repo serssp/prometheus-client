@@ -13,16 +13,21 @@ import java.io.OutputStream;
 
 import static java.util.Collections.emptyMap;
 
-public class OutbrainClient extends AbstractClient {
+public class OutbrainClient extends AbstractPerfClient {
 
+    private final CollectorRegistryExporterFactory collectorRegistryExporterFactory;
     private CollectorRegistryExporter formatter;
+
+    public OutbrainClient(final OutputMode mode, final CollectorRegistryExporterFactory collectorRegistryExporterFactory) {
+        super(mode);
+        this.collectorRegistryExporterFactory = collectorRegistryExporterFactory;
+    }
 
     @Override
     public void setUp() {
-        super.setUp();
         final MetricCollectorRegistry metricCollectorRegistry = new MetricCollectorRegistry();
         metricCollectorRegistry.register(createCollector());
-        formatter = CollectorRegistryExporterFactory.TEXT_004.create(metricCollectorRegistry);
+        formatter = collectorRegistryExporterFactory.create(metricCollectorRegistry);
     }
 
     @Override

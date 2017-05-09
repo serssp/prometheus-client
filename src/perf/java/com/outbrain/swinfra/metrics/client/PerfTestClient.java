@@ -6,15 +6,15 @@ import java.io.OutputStream;
 
 public interface PerfTestClient {
 
-    String createExpectedResult();
-
     void setUp();
 
-    String simulateEndpoint();
+    byte[] simulateEndpoint();
 
     void executeLogic(OutputStream outputStream) throws IOException;
 
     ByteArrayOutputStream createStreamForTest();
 
-    void verify(String result);
+    void verify(byte[] result);
+
 }
+

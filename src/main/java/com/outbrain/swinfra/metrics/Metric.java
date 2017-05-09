@@ -2,8 +2,8 @@ package com.outbrain.swinfra.metrics;
 
 import com.outbrain.swinfra.metrics.utils.MetricType;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface Metric {
   MetricType getType();
@@ -14,5 +14,5 @@ public interface Metric {
 
   List<String> getLabelNames();
 
-  void forEachSample(SampleConsumer sampleConsumer) throws IOException;
+  void forEachSample(Consumer<Sample> sampleConsumer);
 }

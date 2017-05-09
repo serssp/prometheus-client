@@ -2,7 +2,7 @@ plugins {
     id 'idea'
     id 'groovy'
     id 'maven'
-    id "com.jfrog.bintray" version "1.7"
+    id 'com.jfrog.bintray' version '1.7'
 }
 
 group = 'com.outbrain.swinfra'
@@ -20,12 +20,13 @@ sourceSets {
 dependencies {
     compile(
         'io.dropwizard.metrics:metrics-core:3.1.2',
-        'org.apache.commons:commons-lang3:3.3.2'
+        'org.apache.commons:commons-lang3:3.3.2',
+        'com.google.protobuf:protobuf-java:2.6.1'
     )
 
     testCompile(
         'junit:junit:4.12',
-        'org.spockframework:spock-core:1.0-groovy-2.0',
+        'org.spockframework:spock-core:1.0-groovy-2.4',
         'cglib:cglib-nodep:3.1',
         'org.objenesis:objenesis:2.4'
     )

@@ -7,7 +7,7 @@ import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 import com.outbrain.swinfra.metrics.utils.MetricType;
 
-import java.io.IOException;
+import java.util.function.Consumer;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
 import static com.outbrain.swinfra.metrics.utils.MetricType.COUNTER;
@@ -42,7 +42,7 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
 
   @Override
   ChildMetricRepo<com.codahale.metrics.Counter> createChildMetricRepo() {
-    if (getLabelNames().size() == 0) {
+    if (getLabelNames().isEmpty()) {
       return new UnlabeledChildRepo<>(new MetricData<>(new com.codahale.metrics.Counter()));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
@@ -58,9 +58,12 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
   }
 
   @Override
-  public void forEachSample(final SampleConsumer sampleConsumer) throws IOException {
+  public void forEachSample(final Consumer<Sample> sampleConsumer) {
     for (final MetricData<com.codahale.metrics.Counter> metricData : allMetricData()) {
-      sampleConsumer.apply(getName(), metricData.getMetric().getCount(), metricData.getLabelValues(), null, null);
+      final long value = metricData.getMetric().getCount();
+      final Sample sample = new Sample(getName(), value, metricData.getLabelValues(), null, null);
+
+      sampleConsumer.accept(sample);
     }
   }
 

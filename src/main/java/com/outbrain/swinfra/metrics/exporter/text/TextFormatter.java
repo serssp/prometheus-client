@@ -32,26 +32,32 @@ public class TextFormatter implements CollectorExporter {
             stream.append(header);
             final List<String> labelNames = metric.getLabelNames();
 
-            metric.forEachSample((name, value, labelValues, additionalLabelName, additionalLabelValue) -> {
-                stream.append(name);
-                if (containsLabels(staticLabels, labelNames, additionalLabelName)) {
-                    stream.append("{");
+            metric.forEachSample((sample) -> {
+                try {
+                    stream.append(sample.getName());
+                    final String extraLabelName = sample.getExtraLabelName();
+                    if (containsLabels(staticLabels, labelNames, extraLabelName)) {
+                        stream.append("{");
 
-                    for (final Map.Entry<String, String> entry : staticLabels.entrySet()) {
-                        appendLabel(stream, entry.getKey(), entry.getValue());
+                        for (final Map.Entry<String, String> entry : staticLabels.entrySet()) {
+                            appendLabel(stream, entry.getKey(), entry.getValue());
+                        }
+
+                        final List<String> labelValues = sample.getLabelValues();
+                        for (int i = 0; i < labelNames.size(); ++i) {
+                            appendLabel(stream, labelNames.get(i), labelValues.get(i));
+                        }
+
+                        if (extraLabelName != null) {
+                            appendLabel(stream, extraLabelName, sample.getExtraLabelValue());
+                        }
+
+                        stream.append("}");
                     }
-
-                    for(int i = 0; i < labelNames.size(); ++i) {
-                        appendLabel(stream, labelNames.get(i), labelValues.get(i));
-                    }
-
-                    if (additionalLabelName != null) {
-                        appendLabel(stream, additionalLabelName, additionalLabelValue);
-                    }
-
-                    stream.append("}");
+                    stream.append(" ").append(doubleToGoString(sample.getValue())).append("\n");
+                } catch (final IOException e) {
+                    throw new RuntimeException("failed appending to output stream");
                 }
-                stream.append(" ").append(doubleToGoString(value)).append("\n");
             });
         }
         stream.flush();
