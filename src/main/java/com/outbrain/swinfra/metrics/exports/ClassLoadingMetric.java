@@ -7,20 +7,20 @@ import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.function.Predicate;
 
-public class ClassLoadingMetrics extends MetricsRegistrar {
+public class ClassLoadingMetric extends MetricRegistrar {
 
     private final ClassLoadingMXBean classLoadingMXBean;
 
-    public ClassLoadingMetrics() {
+    public ClassLoadingMetric() {
         this(ManagementFactory.getClassLoadingMXBean());
     }
 
-    ClassLoadingMetrics(final ClassLoadingMXBean classLoadingMXBean) {
+    ClassLoadingMetric(final ClassLoadingMXBean classLoadingMXBean) {
         this.classLoadingMXBean = classLoadingMXBean;
     }
 
     @Override
-    public MetricRegistry registerMetricsTo(final MetricRegistry registry, final Predicate<String> nameFilter) {
+    public void registerMetricsTo(final MetricRegistry registry, final Predicate<String> nameFilter) {
         optionallyRegister(
             new Gauge.GaugeBuilder("jvm_classes_loaded", "The number of classes that are currently loaded in the JVM").
                 withValueSupplier(classLoadingMXBean::getLoadedClassCount).build(), registry, nameFilter);
@@ -30,6 +30,5 @@ public class ClassLoadingMetrics extends MetricsRegistrar {
         optionallyRegister(
             new Gauge.GaugeBuilder("jvm_classes_unloaded_total", "The total number of classes that have been unloaded since the JVM has started execution").
                 withValueSupplier(classLoadingMXBean::getUnloadedClassCount).build(), registry, nameFilter);
-        return registry;
     }
 }
