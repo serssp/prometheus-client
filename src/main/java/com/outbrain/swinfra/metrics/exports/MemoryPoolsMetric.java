@@ -11,23 +11,23 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class MemoryPoolsMetrics extends MetricsRegistrar {
+public class MemoryPoolsMetric extends MetricRegistrar {
 
 
     private final MemoryMXBean memoryBean;
     private final List<MemoryPoolMXBean> poolBeans;
 
-    public MemoryPoolsMetrics() {
+    public MemoryPoolsMetric() {
         this(ManagementFactory.getMemoryMXBean(), ManagementFactory.getMemoryPoolMXBeans());
     }
 
-    public MemoryPoolsMetrics(final MemoryMXBean memoryBean, final List<MemoryPoolMXBean> poolBeans) {
+    public MemoryPoolsMetric(final MemoryMXBean memoryBean, final List<MemoryPoolMXBean> poolBeans) {
         this.memoryBean = memoryBean;
         this.poolBeans = poolBeans;
     }
 
     @Override
-    public MetricRegistry registerMetricsTo(final MetricRegistry registry, final Predicate<String> nameFilter) {
+    public void registerMetricsTo(final MetricRegistry registry, final Predicate<String> nameFilter) {
         optionallyRegisterMemoryGague(registry, nameFilter, "jvm_memory_bytes_used", "Used bytes of a given JVM memory area.", MemoryUsage::getUsed);
         optionallyRegisterMemoryGague(registry, nameFilter, "jvm_memory_bytes_committed", "Committed (bytes) of a given JVM memory area.", MemoryUsage::getCommitted);
         optionallyRegisterMemoryGague(registry, nameFilter, "jvm_memory_bytes_max", "Maximum (bytes) of a given JVM memory area.", MemoryUsage::getMax);
@@ -35,8 +35,6 @@ public class MemoryPoolsMetrics extends MetricsRegistrar {
         optionallyRegisterMemoryPoolGauge(registry, nameFilter, "jvm_memory_pool_bytes_used", "Used bytes of a given JVM memory pool.", MemoryUsage::getUsed);
         optionallyRegisterMemoryPoolGauge(registry, nameFilter, "jvm_memory_pool_bytes_committed", "Committed (bytes) of a given JVM memory pool.", MemoryUsage::getCommitted);
         optionallyRegisterMemoryPoolGauge(registry, nameFilter, "jvm_memory_pool_bytes_max", "Max (bytes) of a given JVM memory pool.", MemoryUsage::getMax);
-
-        return registry;
     }
 
     private void optionallyRegisterMemoryPoolGauge(final MetricRegistry registry, final Predicate<String> nameFilter, final String name, final String help, final Function<MemoryUsage, Long> function) {

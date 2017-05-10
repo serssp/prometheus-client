@@ -14,15 +14,15 @@ class StandardMetricsTest extends Specification {
 
 
     @Subject
-    StandardMetrics standardMetrics
+    StandardMetric standardMetrics
 
-    StandardMetrics.StatusReader statusReader = Mock(StandardMetrics.StatusReader)
+    StandardMetric.StatusReader statusReader = Mock(StandardMetric.StatusReader)
     UnixOperatingSystemMXBean osBean = Mock(UnixOperatingSystemMXBean)
     RuntimeMXBean runtimeBean = Mock(RuntimeMXBean)
 
     def setup() {
         osBean.getName() >> 'Linux'
-        standardMetrics = new StandardMetrics(statusReader, osBean, runtimeBean)
+        standardMetrics = new StandardMetric(statusReader, osBean, runtimeBean)
     }
 
     def 'verify metrics registered correctly'() {
@@ -31,9 +31,11 @@ class StandardMetricsTest extends Specification {
             osBean.getOpenFileDescriptorCount() >> 10L
             osBean.getMaxFileDescriptorCount() >> 20L
             runtimeBean.getStartTime() >> 456L * 1.0E3
-            statusReader.readProcSelfStatus() >> new StandardMetrics.StatusParser('Name:   cat\nVmSize:\t5900 kB\nVmRSS:\t   360 kB\n')
+            statusReader.readProcSelfStatus() >> new StandardMetric.StatusParser('Name:   cat\nVmSize:\t5900 kB\nVmRSS:\t   360 kB\n')
+            final MetricRegistry registry = new MetricRegistry()
         when:
-            MetricCollector collector = new MetricCollector(standardMetrics.registerMetricsTo(new MetricRegistry()))
+            standardMetrics.registerMetricsTo(registry)
+            MetricCollector collector = new MetricCollector(registry)
         then:
             collector.find { it.name == 'process_cpu_seconds_total' }.getValue() == 123
             collector.find { it.name == 'process_open_fds' }.getValue() == 10
@@ -46,9 +48,11 @@ class StandardMetricsTest extends Specification {
     def 'broken proc status fails gracefully'() {
         given:
             osBean.getProcessCpuTime() >> 123L * 1.0E9
-            statusReader.readProcSelfStatus() >> new StandardMetrics.StatusParser('Name:   cat\nVmSize:\n')
+            statusReader.readProcSelfStatus() >> new StandardMetric.StatusParser('Name:   cat\nVmSize:\n')
+            final MetricRegistry registry = new MetricRegistry()
         when:
-            MetricCollector collector = new MetricCollector(standardMetrics.registerMetricsTo(new MetricRegistry()))
+            standardMetrics.registerMetricsTo(registry)
+            MetricCollector collector = new MetricCollector(registry)
         then:
             collector.find { it.name == 'process_cpu_seconds_total' }.getValue() == 123
             collector.find { it.name == 'process_virtual_memory_bytes' }.getValue() == 0
@@ -57,8 +61,11 @@ class StandardMetricsTest extends Specification {
 
     @Unroll
     def 'filter metrics by name expect #expected'() {
+        given:
+            final MetricRegistry registry = new MetricRegistry()
         when:
-            MetricCollector collector = new MetricCollector(standardMetrics.registerMetricsTo(new MetricRegistry(), filter as Predicate))
+            standardMetrics.registerMetricsTo(registry, filter as Predicate)
+            MetricCollector collector = new MetricCollector(registry)
         then:
             collector.collect {it.name }.sort() == expected
         where:

@@ -7,20 +7,20 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.function.Predicate;
 
-public class ThreadMetrics extends MetricsRegistrar {
+public class ThreadMetric extends MetricRegistrar {
 
     private final ThreadMXBean threadBean;
 
-    public ThreadMetrics() {
+    public ThreadMetric() {
         this(ManagementFactory.getThreadMXBean());
     }
 
-    ThreadMetrics(final ThreadMXBean threadBean) {
+    ThreadMetric(final ThreadMXBean threadBean) {
         this.threadBean = threadBean;
     }
 
     @Override
-    public MetricRegistry registerMetricsTo(final MetricRegistry registry, final Predicate<String> nameFilter) {
+    public void registerMetricsTo(final MetricRegistry registry, final Predicate<String> nameFilter) {
         optionallyRegister(
             new Gauge.GaugeBuilder("jvm_threads_current", "Current thread count of a JVM").
                 withValueSupplier(threadBean::getThreadCount).build(), registry, nameFilter);
@@ -39,7 +39,6 @@ public class ThreadMetrics extends MetricsRegistrar {
         optionallyRegister(
             new Gauge.GaugeBuilder("jvm_threads_deadlocked_monitor", "Cycles of JVM-threads that are in deadlock waiting to acquire object monitors"    ).
                 withValueSupplier(() -> safeArrayLength(threadBean.findMonitorDeadlockedThreads())).build(), registry, nameFilter);
-        return registry;
     }
 
     private static int safeArrayLength(final long[] array) {

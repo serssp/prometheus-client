@@ -20,7 +20,7 @@ class MemoryPoolsMetricsTest extends Specification {
 
 
     @Subject
-    private MemoryPoolsMetrics memoryPoolMetrics = new MemoryPoolsMetrics(memoryBean, [pool1, pool2])
+    private MemoryPoolsMetric memoryPoolMetrics = new MemoryPoolsMetric(memoryBean, [pool1, pool2])
 
 
     def 'verify metrics registered correctly'() {
@@ -31,8 +31,10 @@ class MemoryPoolsMetricsTest extends Specification {
             pool2.getUsage() >> new MemoryUsage(0, 21, 22, 23)
             pool1.getName() >> 'pool1'
             pool2.getName() >> 'pool2'
+            final MetricRegistry registry = new MetricRegistry()
         when:
-            MetricCollector collector = new MetricCollector(memoryPoolMetrics.registerMetricsTo(new MetricRegistry()))
+            memoryPoolMetrics.registerMetricsTo(registry)
+            MetricCollector collector = new MetricCollector(registry)
         then:
             collector.find { it.name == 'jvm_memory_bytes_used' }.getValue('heap') == 1
             collector.find { it.name == 'jvm_memory_bytes_committed' }.getValue('heap') == 2
@@ -50,8 +52,11 @@ class MemoryPoolsMetricsTest extends Specification {
 
     @Unroll
     def 'filter metrics by name expect #expected'() {
+        given:
+            final MetricRegistry registry = new MetricRegistry()
         when:
-            MetricCollector collector = new MetricCollector(memoryPoolMetrics.registerMetricsTo(new MetricRegistry(), filter as Predicate))
+            memoryPoolMetrics.registerMetricsTo(registry, filter as Predicate)
+            MetricCollector collector = new MetricCollector(registry)
         then:
             collector.collect {it.name}.sort() == expected
         where:

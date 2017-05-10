@@ -16,7 +16,7 @@ class GarbageCollectorMetricsTest extends Specification {
     private GarbageCollectorMXBean gc2 = Mock(GarbageCollectorMXBean)
 
     @Subject
-    private GarbageCollectorMetrics gcMetrics = new GarbageCollectorMetrics([gc1, gc2])
+    private GarbageCollectorMetric gcMetrics = new GarbageCollectorMetric([gc1, gc2])
 
     def 'verify metrics registered correctly'() {
         given:
@@ -26,8 +26,10 @@ class GarbageCollectorMetricsTest extends Specification {
             gc2.getName() >> 'gc2'
             gc2.getCollectionCount() >> 2
             gc2.getCollectionTime() >> 22 * 1000
+            final MetricRegistry registry = new MetricRegistry()
         when:
-            MetricCollector collector = new MetricCollector(gcMetrics.registerMetricsTo(new MetricRegistry()))
+            gcMetrics.registerMetricsTo(registry)
+            MetricCollector collector = new MetricCollector(registry)
         then:
             collector.find { it.name == 'jvm_gc_collection_count' }.getValue('gc1') == 1
             collector.find { it.name == 'jvm_gc_collection_count' }.getValue('gc2') == 2
@@ -37,8 +39,11 @@ class GarbageCollectorMetricsTest extends Specification {
 
     @Unroll
     def 'filter metrics by name expect #expected'() {
+        given:
+            final MetricRegistry registry = new MetricRegistry()
         when:
-            MetricCollector collector = new MetricCollector(gcMetrics.registerMetricsTo(new MetricRegistry(), filter as Predicate))
+            gcMetrics.registerMetricsTo(registry, filter as Predicate)
+            MetricCollector collector = new MetricCollector(registry)
         then:
             collector.collect {it.name }.sort() == expected
         where:

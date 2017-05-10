@@ -14,7 +14,7 @@ class ThreadMetricsTest extends Specification {
     private ThreadMXBean threadsBean = Mock(ThreadMXBean)
 
     @Subject
-    private ThreadMetrics threadMetrics = new ThreadMetrics(threadsBean)
+    private ThreadMetric threadMetrics = new ThreadMetric(threadsBean)
 
     def 'verify metrics registered correctly'() {
         given:
@@ -24,8 +24,10 @@ class ThreadMetricsTest extends Specification {
             threadsBean.getTotalStartedThreadCount() >> 503L
             threadsBean.findDeadlockedThreads() >> ([11L, 22L, 33L] as long[])
             threadsBean.findMonitorDeadlockedThreads() >> ([12L, 13L, 14L] as long[])
+            final MetricRegistry registry = new MetricRegistry()
         when:
-            MetricCollector collector = new MetricCollector(threadMetrics.registerMetricsTo(new MetricRegistry()))
+            threadMetrics.registerMetricsTo(registry)
+            MetricCollector collector = new MetricCollector(registry)
         then:
             collector.find { it.name == 'jvm_threads_current' }.getValue() == 300
             collector.find { it.name == 'jvm_threads_daemon' }.getValue() == 200
@@ -37,8 +39,11 @@ class ThreadMetricsTest extends Specification {
 
     @Unroll
     def 'filter metrics by name expect #expected'() {
+        given:
+            final MetricRegistry registry = new MetricRegistry()
         when:
-            MetricCollector collector = new MetricCollector(threadMetrics.registerMetricsTo(new MetricRegistry(), filter as Predicate))
+            threadMetrics.registerMetricsTo(registry, filter as Predicate)
+            MetricCollector collector = new MetricCollector(registry)
         then:
             collector.collect {it.name }.sort() == expected
         where:

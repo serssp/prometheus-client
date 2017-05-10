@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-public class StandardMetrics extends MetricsRegistrar {
+public class StandardMetric extends MetricRegistrar {
 
     private final static double KB = 1024;
 
@@ -23,13 +23,13 @@ public class StandardMetrics extends MetricsRegistrar {
     private final boolean unix;
     private final boolean linux;
 
-    public StandardMetrics() {
+    public StandardMetric() {
         this(new StatusReader(),
             (OperatingSystemMXBean)ManagementFactory.getOperatingSystemMXBean(),
             ManagementFactory.getRuntimeMXBean());
     }
 
-    StandardMetrics(final StatusReader statusReader, final OperatingSystemMXBean osBean, final RuntimeMXBean runtimeBean) {
+    StandardMetric(final StatusReader statusReader, final OperatingSystemMXBean osBean, final RuntimeMXBean runtimeBean) {
         this.statusReader = statusReader;
         this.osBean = osBean;
         this.runtimeBean = runtimeBean;
@@ -38,7 +38,7 @@ public class StandardMetrics extends MetricsRegistrar {
     }
 
     @Override
-    public MetricRegistry registerMetricsTo(final MetricRegistry registry, final Predicate<String> nameFilter) {
+    public void registerMetricsTo(final MetricRegistry registry, final Predicate<String> nameFilter) {
         optionallyRegister(
             new Gauge.GaugeBuilder("process_cpu_seconds_total", "Total user and system CPU time spent in seconds.").
                 withValueSupplier(() -> TimeUnit.NANOSECONDS.toSeconds(osBean.getProcessCpuTime())).build(), registry, nameFilter);
@@ -78,8 +78,6 @@ public class StandardMetrics extends MetricsRegistrar {
                         }
                     }).build(), registry, nameFilter);
         }
-
-        return registry;
     }
 
     static class StatusReader {
