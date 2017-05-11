@@ -8,6 +8,6 @@ import java.util.Collection;
  * allow for an implementation of metrics that have labels dfined along those that don't.
  */
 public interface ChildMetricRepo<T> {
-  MetricData<T> metricForLabels(final String... labelValues);
+  T metricForLabels(final String... labelValues);
   Collection<MetricData<T>> all();
 }
