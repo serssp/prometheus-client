@@ -21,9 +21,9 @@ public class LabeledChildrenRepo<T> implements ChildMetricRepo<T> {
   }
 
   @Override
-  public MetricData<T> metricForLabels(final String... labelValues) {
+  public T metricForLabels(final String... labelValues) {
     final String metricId = labelsToCommaDelimitedString(labelValues);
-    return children.computeIfAbsent(metricId, mappingFunction);
+    return children.computeIfAbsent(metricId, mappingFunction).getMetric();
   }
 
   @Override

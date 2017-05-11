@@ -58,7 +58,7 @@ abstract class AbstractMetric<T> implements Metric {
   }
 
   T metricForLabels(final String... labelValues) {
-    return childMetricRepo.metricForLabels(labelValues).getMetric();
+    return childMetricRepo.metricForLabels(labelValues);
   }
 
   Collection<MetricData<T>> allMetricData() {

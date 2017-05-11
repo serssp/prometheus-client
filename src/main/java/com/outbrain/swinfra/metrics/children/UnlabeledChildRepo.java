@@ -16,8 +16,8 @@ public class UnlabeledChildRepo<T> implements ChildMetricRepo<T> {
   }
 
   @Override
-  public MetricData<T> metricForLabels(final String... labelValues) {
-    return metricData;
+  public T metricForLabels(final String... labelValues) {
+    return metricData.getMetric();
   }
 
   @Override
