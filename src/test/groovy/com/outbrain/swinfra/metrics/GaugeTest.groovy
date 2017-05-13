@@ -1,5 +1,7 @@
 package com.outbrain.swinfra.metrics
 
+import com.outbrain.swinfra.metrics.children.MetricData
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer
 import spock.lang.Specification
 
 import java.util.function.Consumer
@@ -12,8 +14,21 @@ class GaugeTest extends Specification {
     private static final String NAME = "NAME"
     private static final String HELP = "HELP"
 
+    private final MetricDataConsumer metricDataConsumer = Mock(MetricDataConsumer)
+    private final Consumer<MetricData<DoubleSupplier>> consumer = Mock(Consumer)
 
-    private final Consumer<Sample> sampleConsumer = Mock(Consumer)
+    def 'consumeGauge will be called by MetricDataConsumer for each child'() {
+        given:
+            final Gauge gauge = new GaugeBuilder(NAME, HELP).withLabels('a').
+                    withValueSupplier({1.1D} as DoubleSupplier, 'A').
+                    withValueSupplier({2.2D} as DoubleSupplier, 'B').build()
+        when:
+            gauge.forEachMetricData(metricDataConsumer)
+        then:
+            1 * metricDataConsumer.consumeGauge(gauge, ['A'], 1.1D)
+            1 * metricDataConsumer.consumeGauge(gauge, ['B'], 2.2D)
+            0 * metricDataConsumer._
+    }
 
     def 'Gauge should have the correct value'() {
         final double expectedValue = 239487234
@@ -52,9 +67,10 @@ class GaugeTest extends Specification {
                     .build()
 
         when:
-            gauge.forEachSample(sampleConsumer)
+            gauge.forEachChild(consumer)
         then:
-            1 * sampleConsumer.accept(new Sample(NAME, expectedValue, [], null, null))
+            1 * consumer.accept({ it.metric.getAsDouble() == expectedValue && it.labelValues == [] })
+            0 * consumer.accept(_)
     }
 
     def 'Gauge should return the correct samples with labels'() {
@@ -69,14 +85,12 @@ class GaugeTest extends Specification {
                 .withValueSupplier({ expectedValue1 } as DoubleSupplier, labelValues1)
                 .withValueSupplier({ expectedValue2 } as DoubleSupplier, labelValues2)
                 .build()
-
-
-
         when:
-            gauge.forEachSample(sampleConsumer)
+            gauge.forEachChild(consumer)
         then:
-            1 * sampleConsumer.accept(new Sample(NAME, expectedValue1, labelValues1 as List, null, null))
-            1 * sampleConsumer.accept(new Sample(NAME, expectedValue2, labelValues2 as List, null, null))
+            1 * consumer.accept({ it.metric.getAsDouble() == expectedValue1 && it.labelValues == labelValues1 as List })
+            1 * consumer.accept({ it.metric.getAsDouble() == expectedValue2 && it.labelValues == labelValues2 as List })
+            0 * consumer.accept(_)
     }
 
     def 'GaugeBuilder should provide value supplier with labels'() {
@@ -90,9 +104,10 @@ class GaugeTest extends Specification {
                     .build()
 
         when:
-            gauge.forEachSample(sampleConsumer)
+            gauge.forEachChild(consumer)
         then:
-            1 * sampleConsumer.accept(new Sample(NAME, expectedValue, labelValues as List, null, null))
+            1 * consumer.accept({ it.metric.getAsDouble() == expectedValue && it.labelValues == labelValues as List })
+            0 * consumer.accept(_)
     }
 
     def 'GaugeBuilder should override value supplier if several suppliers passed with same values'() {
@@ -108,9 +123,10 @@ class GaugeTest extends Specification {
                     .build()
 
         when:
-            gauge.forEachSample(sampleConsumer)
+            gauge.forEachChild(consumer)
         then:
-            1 * sampleConsumer.accept(new Sample(NAME, expectedValue, labelValues as List, null, null))
+            1 * consumer.accept({ it.metric.getAsDouble() == expectedValue && it.labelValues == labelValues as List })
+            0 * consumer.accept(_)
     }
 
     def 'GaugeBuilder should throw an exception when its built without any valueSupplier'() {

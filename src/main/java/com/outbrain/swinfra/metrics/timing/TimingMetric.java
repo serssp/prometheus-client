@@ -5,8 +5,5 @@ package com.outbrain.swinfra.metrics.timing;
  */
 public interface TimingMetric {
 
-  String COUNT_SUFFIX = "_count";
-  String SUM_SUFFIX = "_sum";
-
   Timer startTimer(final String... labelValues);
 }

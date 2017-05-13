@@ -1,6 +1,6 @@
 package com.outbrain.swinfra.metrics.children;
 
-import java.util.Collection;
+import java.util.function.Consumer;
 
 /**
  * A container for children metrics for a specific metric name.
@@ -9,5 +9,6 @@ import java.util.Collection;
  */
 public interface ChildMetricRepo<T> {
   T metricForLabels(final String... labelValues);
-  Collection<MetricData<T>> all();
+
+  void forEachMetricData(Consumer<MetricData<T>> consumer);
 }

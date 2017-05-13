@@ -1,8 +1,8 @@
 package com.outbrain.swinfra.metrics.children;
 
-import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.labelsToCommaDelimitedString;
@@ -27,7 +27,9 @@ public class LabeledChildrenRepo<T> implements ChildMetricRepo<T> {
   }
 
   @Override
-  public Collection<MetricData<T>> all() {
-    return children.values();
+  public void forEachMetricData(final Consumer<MetricData<T>> consumer) {
+    for (MetricData<T> metricData : children.values()) {
+      consumer.accept(metricData);
+    }
   }
 }

@@ -1,5 +1,7 @@
 package com.outbrain.swinfra.metrics
 
+import com.outbrain.swinfra.metrics.children.MetricData
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -13,7 +15,23 @@ class CounterTest extends Specification {
     private static final String HELP = "HELP"
 
 
-    private final Consumer<Sample> sampleConsumer = Mock(Consumer)
+    private final Consumer<MetricData<com.codahale.metrics.Counter>> consumer = Mock(Consumer)
+    private final MetricDataConsumer metricDataConsumer = Mock(MetricDataConsumer)
+
+
+    def 'consumeCounter will be called by MetricDataConsumer for each child'() {
+        given:
+            final Counter counter = new CounterBuilder(NAME, HELP).
+                    withLabels('a').build()
+        when:
+            counter.inc(1, 'A')
+            counter.inc(2, 'B')
+            counter.forEachMetricData(metricDataConsumer)
+        then:
+            1 * metricDataConsumer.consumeCounter(counter, ['A'], 1)
+            1 * metricDataConsumer.consumeCounter(counter, ['B'], 2)
+            0 * metricDataConsumer._
+    }
 
     @Unroll
     def 'Counter should return #expectedValue after incrementing #increment times'() {
@@ -55,6 +73,18 @@ class CounterTest extends Specification {
             10          | 100
     }
 
+    def 'Counter should return the correct samples without any labels defined'() {
+        given:
+            final Counter counter = new CounterBuilder(NAME, HELP).build()
+
+            counter.inc(17)
+        when:
+            counter.forEachChild(consumer)
+        then:
+            1 * consumer.accept({ it.metric.count == 17 && it.labelValues == [] })
+            0 * consumer.accept(_)
+    }
+
     def 'Counter should return the correct samples with labels defined'() {
         final String[] labelValues1 = ["val1", "val2"]
         final String[] labelValues2 = ["val3", "val4"]
@@ -67,10 +97,11 @@ class CounterTest extends Specification {
             counter.inc(5, labelValues1)
             counter.inc(6, labelValues2)
         when:
-            counter.forEachSample(sampleConsumer)
+            counter.forEachChild(consumer)
         then:
-            1 * sampleConsumer.accept(new Sample(NAME, 5, labelValues1 as List, null, null))
-            1 * sampleConsumer.accept(new Sample(NAME, 6, labelValues2 as List, null, null))
+            1 * consumer.accept({ it.metric.count == 5 && it.labelValues == labelValues1 as List })
+            1 * consumer.accept({ it.metric.count == 6 && it.labelValues == labelValues2 as List })
+            0 * consumer.accept(_)
     }
 
     def 'Counter should return the correct samples with subsystem defined'() {
@@ -81,11 +112,8 @@ class CounterTest extends Specification {
             final Counter counter = new CounterBuilder(NAME, HELP)
                 .withSubsystem(subsystem)
                 .build()
-
-        when:
-            counter.forEachSample(sampleConsumer)
-        then:
-            1 * sampleConsumer.accept(new Sample(fullName, 0, [], null, null))
+        expect:
+            counter.getName() == fullName
     }
 
     def 'Counter should return the correct samples with namespace and subsystem defined'() {
@@ -98,10 +126,8 @@ class CounterTest extends Specification {
                 .withNamespace(namespace)
                 .withSubsystem(subsystem)
                 .build()
-        when:
-            counter.forEachSample(sampleConsumer)
-        then:
-            1 * sampleConsumer.accept(new Sample(fullName, 0, [], null, null))
+        expect:
+            counter.getName() == fullName
     }
 
     def 'Counter should return the correct samples with namespace defined'() {
@@ -112,10 +138,8 @@ class CounterTest extends Specification {
             final Counter counter = new CounterBuilder(NAME, HELP)
                 .withNamespace(namespace)
                 .build()
-        when:
-            counter.forEachSample(sampleConsumer)
-        then:
-            1 * sampleConsumer.accept(new Sample(fullName, 0, [], null, null))
+        expect:
+            counter.getName() == fullName
     }
 
     def 'Counter without labels should throw an exception when attempting to increment with labels'() {

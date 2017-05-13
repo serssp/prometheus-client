@@ -1,27 +1,24 @@
 package com.outbrain.swinfra.metrics.exporter.protobuf;
 
-import com.outbrain.swinfra.metrics.Histogram;
 import com.outbrain.swinfra.metrics.Metric;
 import com.outbrain.swinfra.metrics.MetricCollector;
-import com.outbrain.swinfra.metrics.Sample;
-import com.outbrain.swinfra.metrics.Summary;
+import com.outbrain.swinfra.metrics.data.HistogramData;
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer;
+import com.outbrain.swinfra.metrics.data.SummaryData;
 import com.outbrain.swinfra.metrics.exporter.CollectorExporter;
-import com.outbrain.swinfra.metrics.timing.TimingMetric;
 import io.prometheus.client.Metrics;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * Protocol buffers formatter
  *
- * @author marenzon
  * @see <a href="https://github.com/prometheus/client_model/blob/master/metrics.proto">metrics.proto</a>
  */
 public class ProtobufFormatter implements CollectorExporter {
@@ -38,196 +35,119 @@ public class ProtobufFormatter implements CollectorExporter {
 
   @Override
   public void exportTo(final OutputStream stream) throws IOException {
-    final Map<String, String> staticLabels = metricCollector.getStaticLabels();
-
+    final ProtobufMetricDataConsumer consumer = new ProtobufMetricDataConsumer(metricCollector.getStaticLabels(), stream);
     for (final Metric metric : metricCollector) {
-      // creating protobuf metric family
-      final Metrics.MetricFamily.Builder familyBuilder = createMetricFamily(metric);
+      consumer.consumeMetric(metric);
+    }
+  }
 
-      // defined labels
-      final List<String> labelNames = metric.getLabelNames();
+  private static class ProtobufMetricDataConsumer implements MetricDataConsumer {
 
-      final Metrics.Metric.Builder metricBuilder = Metrics.Metric.newBuilder();
-      // registering all default labelValues
+    private final Map<String, String> staticLabels;
+    private final OutputStream stream;
+    private Metrics.MetricFamily.Builder familyBuilder;
+    private Metrics.Metric.Builder metricBuilder;
+
+    private ProtobufMetricDataConsumer(final Map<String, String> staticLabels, final OutputStream stream) {
+      this.staticLabels = staticLabels;
+      this.stream = stream;
+    }
+
+    private void consumeMetric(final Metric metric) throws IOException {
+      familyBuilder = createMetricFamily(metric);
+      metricBuilder = Metrics.Metric.newBuilder();
+      // registering all static labelValues
       staticLabels.forEach((n, v) ->
           metricBuilder.addLabel(createLabel(n, v)));
 
-      // apply samples into metric family
-      consumeByType(metric, familyBuilder, metricBuilder);
+      // build metric family
+      metric.forEachMetricData(this);
 
       // flush metric family into output stream
       familyBuilder.build().writeDelimitedTo(stream);
     }
-  }
 
-  private void consumeByType(final Metric metric,
-                             final Metrics.MetricFamily.Builder familyBuilder,
-                             final Metrics.Metric.Builder metricBuilder) {
-    switch (metric.getType()) {
-      case COUNTER:
-        familyBuilder.setType(Metrics.MetricType.COUNTER);
-        consumeCounterSample(metric, familyBuilder, metricBuilder);
-        break;
 
-      case GAUGE:
-        familyBuilder.setType(Metrics.MetricType.GAUGE);
-        consumeGaugeSample(metric, familyBuilder, metricBuilder);
-        break;
+    @Override
+    public void consumeCounter(final Metric metric, final List<String> labelValues, final double value) {
+      familyBuilder.setType(Metrics.MetricType.COUNTER);
+      final Metrics.Counter counter = Metrics.Counter.newBuilder().setValue(value).build();
+      addMetric(() -> metricBuilder.setCounter(counter).build(), metric.getLabelNames(), labelValues);
 
-      case SUMMARY:
-        familyBuilder.setType(Metrics.MetricType.SUMMARY);
-        consumeSummarySample(metric, familyBuilder, metricBuilder);
-        break;
-
-      case HISTOGRAM:
-        familyBuilder.setType(Metrics.MetricType.HISTOGRAM);
-        consumeHistogramSample(metric, familyBuilder, metricBuilder);
-        break;
-
-      default:
-        throw new UnsupportedOperationException("not implemented for metric type: " + metric.getType().getName());
     }
-  }
 
-  private void consumeGaugeSample(final Metric metricData,
-                                  final Metrics.MetricFamily.Builder familyBuilder,
-                                  final Metrics.Metric.Builder metricBuilder) {
-    metricData.forEachSample(sample -> {
-      final Metrics.Gauge gauge = Metrics.Gauge.newBuilder().
-          setValue(sample.getValue()).
-          build();
-
-      addMetric(metricData, familyBuilder, metricBuilder, sample.getLabelValues(), (m) -> metricBuilder.setGauge(m).build(), gauge);
-
-    });
-  }
-
-  private void consumeCounterSample(final Metric metricData,
-                                    final Metrics.MetricFamily.Builder familyBuilder,
-                                    final Metrics.Metric.Builder metricBuilder) {
-    metricData.forEachSample(sample -> {
-      final Metrics.Counter counter = Metrics.Counter.newBuilder().
-        setValue(sample.getValue()).
-        build();
-
-      addMetric(metricData, familyBuilder, metricBuilder, sample.getLabelValues(), (m) -> metricBuilder.setCounter(m).build(), counter);
-
-    });
-  }
-
-  private void consumeSummarySample(final Metric metricData,
-                                    final Metrics.MetricFamily.Builder familyBuilder,
-                                    final Metrics.Metric.Builder metricBuilder) {
-
-    final Map<List<String>, Metrics.Summary.Builder> summaryBuilderByLabelValues = new HashMap<>();
-
-    metricData.forEachSample(sample -> {
-
-      final Metrics.Summary.Builder summaryBuilder =
-          summaryBuilderByLabelValues.computeIfAbsent(sample.getLabelValues(), (labelValues) -> Metrics.Summary.newBuilder());
-
-      if (Summary.QUANTILE_LABEL.equals(sample.getExtraLabelName())) {
-        final Metrics.Quantile quantile = Metrics.Quantile.newBuilder().
-          setQuantile(Double.parseDouble(sample.getExtraLabelValue())).
-          setValue(sample.getValue()).
-          build();
-
-        summaryBuilder.addQuantile(quantile);
-      }
-      else if (isCountSample(sample)) {
-        summaryBuilder.setSampleCount((long) sample.getValue());
-      }
-      else if (isSumSample(sample)) {
-        summaryBuilder.setSampleSum(sample.getValue());
-      }
-    });
-    summaryBuilderByLabelValues.forEach((labelValues, summaryBuilder) -> {
-
-      addMetric(metricData, familyBuilder, metricBuilder, labelValues, (m) -> metricBuilder.setSummary(m).build(), summaryBuilder.build());
-
-    });
-  }
-
-  private void consumeHistogramSample(final Metric metricData,
-                                      final Metrics.MetricFamily.Builder familyBuilder,
-                                      final Metrics.Metric.Builder metricBuilder) {
-
-    final Map<List<String>, Metrics.Histogram.Builder> histogramBuilderByLabelValues = new HashMap<>();
-
-    metricData.forEachSample(sample -> {
-
-      final Metrics.Histogram.Builder histogramBuilder =
-          histogramBuilderByLabelValues.computeIfAbsent(sample.getLabelValues(), (labelValues) -> Metrics.Histogram.newBuilder());
-
-      if (Histogram.BUCKET_LABEL.equals(sample.getExtraLabelName())) {
-        final Metrics.Bucket bucket = Metrics.Bucket.newBuilder().
-          setCumulativeCount((long) sample.getValue()).
-          setUpperBound("+Inf".equals(sample.getExtraLabelValue()) ?
-            Double.POSITIVE_INFINITY :
-            Double.parseDouble(sample.getExtraLabelValue())).
-          build();
-
-        histogramBuilder.addBucket(bucket);
-      }
-      else if (isSumSample(sample)) {
-        histogramBuilder.setSampleSum(sample.getValue());
-      }
-      else if (isCountSample(sample)) {
-        histogramBuilder.setSampleCount((long) sample.getValue());
-      }
-    });
-
-    histogramBuilderByLabelValues.forEach((labelValues, histogramBuilder) -> {
-      addMetric(metricData, familyBuilder, metricBuilder, labelValues, (m) -> metricBuilder.setHistogram(m).build(), histogramBuilder.build());
-    });
-  }
-
-  private boolean isSumSample(final Sample sample) {
-    return sample.getName().endsWith(TimingMetric.SUM_SUFFIX);
-  }
-
-  private boolean isCountSample(final Sample sample) {
-    return sample.getName().endsWith(TimingMetric.COUNT_SUFFIX);
-  }
-
-  private <T> void addMetric(final Metric metricData,
-                             final Metrics.MetricFamily.Builder familyBuilder,
-                             final Metrics.Metric.Builder metricBuilder,
-                             final List<String> labelValues,
-                             final Function<T, Metrics.Metric> buildMetric,
-                             final T specificTypeMetric)  {
-
-    final int previousCount = setSampleLabels(metricBuilder, metricData.getLabelNames(), labelValues);
-    final Metrics.Metric metric = buildMetric.apply(specificTypeMetric);
-    resetMetricBuilderLabels(metricBuilder, labelValues, previousCount);
-
-    familyBuilder.addMetric(metric);
-  }
-
-  private int setSampleLabels(final Metrics.Metric.Builder metricBuilder, final List<String> labelNames, final List<String> labelValues) {
-    final int labelsCount = metricBuilder.getLabelCount();
-    for (int i = 0; i < labelValues.size(); i++) {
-      metricBuilder.addLabel(createLabel(labelNames.get(i), labelValues.get(i)));
+    @Override
+    public void consumeGauge(final Metric metric, final List<String> labelValues, final double value) {
+      familyBuilder.setType(Metrics.MetricType.GAUGE);
+      final Metrics.Gauge gauge = Metrics.Gauge.newBuilder().setValue(value).build();
+      addMetric(() -> metricBuilder.setGauge(gauge).build(), metric.getLabelNames(), labelValues);
     }
-    return labelsCount;
-  }
 
-  private void resetMetricBuilderLabels(final Metrics.Metric.Builder metricBuilder, final List<String> labelValues, final int currentCount) {
-    for (int i = labelValues.size() - 1; i >= 0; i--) {
-      metricBuilder.removeLabel(currentCount + i);
+    @Override
+    public void consumeSummary(final Metric metric, final List<String> labelValues, final SummaryData data) {
+      familyBuilder.setType(Metrics.MetricType.SUMMARY);
+      final Metrics.Summary.Builder summaryBuilder = Metrics.Summary.newBuilder().
+        setSampleCount(data.getCount()).setSampleSum(data.getSum());
+      summaryBuilder.addQuantile(Metrics.Quantile.newBuilder().setQuantile(0.5d).setValue(data.getMedian()));
+      summaryBuilder.addQuantile(Metrics.Quantile.newBuilder().setQuantile(0.75d).setValue(data.get75thPercentile()));
+      summaryBuilder.addQuantile(Metrics.Quantile.newBuilder().setQuantile(0.95d).setValue(data.get95thPercentile()));
+      summaryBuilder.addQuantile(Metrics.Quantile.newBuilder().setQuantile(0.98d).setValue(data.get98thPercentile()));
+      summaryBuilder.addQuantile(Metrics.Quantile.newBuilder().setQuantile(0.99d).setValue(data.get99thPercentile()));
+      summaryBuilder.addQuantile(Metrics.Quantile.newBuilder().setQuantile(0.999d).setValue(data.get999thPercentile()));
+      addMetric(() -> metricBuilder.setSummary(summaryBuilder).build(), metric.getLabelNames(), labelValues);
     }
-  }
 
-  private Metrics.MetricFamily.Builder createMetricFamily(final Metric metric) {
-    return Metrics.MetricFamily.newBuilder().
-      setName(metric.getName()).
-      setHelp(metric.getHelp());
-  }
+    @Override
+    public void consumeHistogram(final Metric metric, final List<String> labelValues, final HistogramData data) {
+      familyBuilder.setType(Metrics.MetricType.HISTOGRAM);
+      final Metrics.Histogram.Builder histogramBuilder = Metrics.Histogram.newBuilder().
+          setSampleCount(data.getCount()).setSampleSum(data.getSum());
+      data.consumeBuckets((upperBound, count) -> {
+        histogramBuilder.addBucket(Metrics.Bucket.newBuilder().setCumulativeCount(count).setUpperBound(upperBound));
+      });
 
-  private Metrics.LabelPair createLabel(final String n, final String v) {
-    return Metrics.LabelPair.newBuilder().
-      setName(n).
-      setValue(v).
-      build();
+      addMetric(() -> metricBuilder.setHistogram(histogramBuilder).build(), metric.getLabelNames(), labelValues);
+    }
+
+    private static Metrics.MetricFamily.Builder createMetricFamily(final Metric metric) {
+      return Metrics.MetricFamily.newBuilder().
+          setName(metric.getName()).
+          setHelp(metric.getHelp());
+    }
+    private void addMetric(final Supplier<Metrics.Metric> metricSupplier,
+                               final List<String> labelNames,
+                               final List<String> labelValues)  {
+      // add labels to the builder
+      final int previousCount = addLabels(metricBuilder, labelNames, labelValues);
+
+      // create the metric object
+      final Metrics.Metric metric = metricSupplier.get();
+
+      // reset builders to be reused
+      resetMetricBuilderLabels(metricBuilder, labelValues, previousCount);
+
+      familyBuilder.addMetric(metric);
+    }
+
+    private static int addLabels(final Metrics.Metric.Builder metricBuilder, final List<String> labelNames, final List<String> labelValues) {
+      final int labelsCount = metricBuilder.getLabelCount();
+      for (int i = 0; i < labelValues.size(); i++) {
+        metricBuilder.addLabel(createLabel(labelNames.get(i), labelValues.get(i)));
+      }
+      return labelsCount;
+    }
+
+    private static void resetMetricBuilderLabels(final Metrics.Metric.Builder metricBuilder, final List<String> labelValues, final int currentCount) {
+      for (int i = labelValues.size() - 1; i >= 0; i--) {
+        metricBuilder.removeLabel(currentCount + i);
+      }
+    }
+
+    private static Metrics.LabelPair createLabel(final String n, final String v) {
+      return Metrics.LabelPair.newBuilder().
+          setName(n).
+          setValue(v).
+          build();
+    }
   }
 }

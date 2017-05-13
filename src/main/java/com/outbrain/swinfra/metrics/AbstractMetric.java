@@ -5,8 +5,8 @@ import com.outbrain.swinfra.metrics.children.MetricData;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * A base class for all the metrics.
@@ -61,7 +61,7 @@ abstract class AbstractMetric<T> implements Metric {
     return childMetricRepo.metricForLabels(labelValues);
   }
 
-  Collection<MetricData<T>> allMetricData() {
-    return childMetricRepo.all();
+  void forEachChild(final Consumer<MetricData<T>> consumer) {
+    childMetricRepo.forEachMetricData(consumer);
   }
 }
