@@ -4,13 +4,13 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer;
 import com.outbrain.swinfra.metrics.utils.MetricType;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
@@ -46,13 +46,11 @@ public class Gauge extends AbstractMetric<DoubleSupplier> {
   }
 
   @Override
-  public void forEachSample(final Consumer<Sample> sampleConsumer) {
-    for (final MetricData<DoubleSupplier> metricData : allMetricData()) {
+  public void forEachMetricData(final MetricDataConsumer consumer) {
+    forEachChild(metricData -> {
       final double value = metricData.getMetric().getAsDouble();
-      final Sample sample = new Sample(getName(), value, metricData.getLabelValues(), null, null);
-
-      sampleConsumer.accept(sample);
-    }
+      consumer.consumeGauge(this, metricData.getLabelValues(), value);
+    });
   }
 
   @Override

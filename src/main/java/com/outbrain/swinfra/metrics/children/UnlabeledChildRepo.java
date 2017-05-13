@@ -1,7 +1,6 @@
 package com.outbrain.swinfra.metrics.children;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.function.Consumer;
 
 /**
  * A child metric container implementation for metrics that do not have labels.
@@ -21,7 +20,7 @@ public class UnlabeledChildRepo<T> implements ChildMetricRepo<T> {
   }
 
   @Override
-  public Collection<MetricData<T>> all() {
-    return Collections.singleton(metricData);
+  public void forEachMetricData(final Consumer<MetricData<T>> consumer) {
+    consumer.accept(metricData);
   }
 }

@@ -5,9 +5,9 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer;
 import com.outbrain.swinfra.metrics.utils.MetricType;
 
-import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
@@ -53,13 +53,11 @@ public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
   }
 
   @Override
-  public void forEachSample(final Consumer<Sample> sampleConsumer) {
-    for (final MetricData<SettableDoubleSupplier> metricData : allMetricData()) {
+  public void forEachMetricData(final MetricDataConsumer consumer) {
+    forEachChild(metricData -> {
       final double value = metricData.getMetric().getAsDouble();
-      final Sample sample = new Sample(getName(), value, metricData.getLabelValues(), null, null);
-
-      sampleConsumer.accept(sample);
-    }
+      consumer.consumeGauge(this, metricData.getLabelValues(), value);
+    });
   }
 
   public void set(final double value, final String... labelValues) {

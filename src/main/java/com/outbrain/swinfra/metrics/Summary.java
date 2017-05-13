@@ -11,14 +11,14 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer;
+import com.outbrain.swinfra.metrics.data.SummaryData;
 import com.outbrain.swinfra.metrics.timing.Clock;
 import com.outbrain.swinfra.metrics.timing.Timer;
 import com.outbrain.swinfra.metrics.timing.TimingMetric;
 import com.outbrain.swinfra.metrics.utils.MetricType;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.outbrain.swinfra.metrics.timing.Clock.DEFAULT_CLOCK;
@@ -50,12 +50,9 @@ import static com.outbrain.swinfra.metrics.utils.MetricType.SUMMARY;
  */
 public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
 
-  public static final String QUANTILE_LABEL = "quantile";
 
   private final Supplier<Reservoir> reservoirSupplier;
   private final Clock clock;
-  private final String countSampleName;
-  private final String sumSampleName;
 
   private Summary(final String name,
                   final String help,
@@ -65,8 +62,6 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
     super(name, help, labelNames);
     this.reservoirSupplier = reservoirSupplier;
     this.clock = clock;
-    this.countSampleName = name + COUNT_SUFFIX;
-    this.sumSampleName = name + SUM_SUFFIX;
   }
 
   public void observe(final int value, final String... labelValues) {
@@ -96,25 +91,11 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
   }
 
   @Override
-  public void forEachSample(final Consumer<Sample> sampleConsumer) {
-    for (final MetricData<Histogram> metricData : allMetricData()) {
-      final List<String> labelValues = metricData.getLabelValues();
-      final Snapshot snapshot = metricData.getMetric().getSnapshot();
-      final String name = getName();
-      sampleConsumer.accept(new Sample(name, snapshot.getMedian(), labelValues, QUANTILE_LABEL, "0.5"));
-      sampleConsumer.accept(new Sample(name, snapshot.get75thPercentile(), labelValues, QUANTILE_LABEL, "0.75"));
-      sampleConsumer.accept(new Sample(name, snapshot.get95thPercentile(), labelValues, QUANTILE_LABEL, "0.95"));
-      sampleConsumer.accept(new Sample(name, snapshot.get98thPercentile(), labelValues, QUANTILE_LABEL, "0.98"));
-      sampleConsumer.accept(new Sample(name, snapshot.get99thPercentile(), labelValues, QUANTILE_LABEL, "0.99"));
-      sampleConsumer.accept(new Sample(name, snapshot.get999thPercentile(), labelValues, QUANTILE_LABEL, "0.999"));
-      sampleConsumer.accept(new Sample(countSampleName, metricData.getMetric().getCount(), labelValues, null, null));
-
-      long sum = 0;
-      for (final long value : snapshot.getValues()) {
-        sum += value;
-      }
-      sampleConsumer.accept(new Sample(sumSampleName, sum, labelValues, null, null));
-    }
+  public void forEachMetricData(final MetricDataConsumer consumer) {
+    forEachChild(metricData -> {
+      final CodahaleSummaryData snapshot = new CodahaleSummaryData(metricData.getMetric().getCount(), metricData.getMetric().getSnapshot());
+      consumer.consumeSummary(this, metricData.getLabelValues(), snapshot);
+    });
   }
 
   @Override
@@ -237,5 +218,62 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
     }
 
 
+  }
+
+  private static class CodahaleSummaryData implements SummaryData {
+
+    private final long count;
+    private final Snapshot snapshot;
+    private long sum;
+
+
+    private CodahaleSummaryData(final long count, final Snapshot snapshot) {
+      this.count = count;
+      this.snapshot = snapshot;
+      sum = 0;
+      for (final long value : snapshot.getValues()) {
+        sum += value;
+      }
+    }
+
+    @Override
+    public long getCount() {
+      return count;
+    }
+
+    @Override
+    public double getSum() {
+      return sum;
+    }
+
+    @Override
+    public double getMedian() {
+      return snapshot.getMedian();
+    }
+
+    @Override
+    public double get75thPercentile() {
+      return snapshot.get75thPercentile();
+    }
+
+    @Override
+    public double get95thPercentile() {
+      return snapshot.get95thPercentile();
+    }
+
+    @Override
+    public double get98thPercentile() {
+      return snapshot.get98thPercentile();
+    }
+
+    @Override
+    public double get99thPercentile() {
+      return snapshot.get99thPercentile();
+    }
+
+    @Override
+    public double get999thPercentile() {
+      return snapshot.get999thPercentile();
+    }
   }
 }

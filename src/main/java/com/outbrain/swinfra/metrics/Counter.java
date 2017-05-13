@@ -5,9 +5,8 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer;
 import com.outbrain.swinfra.metrics.utils.MetricType;
-
-import java.util.function.Consumer;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
 import static com.outbrain.swinfra.metrics.utils.MetricType.COUNTER;
@@ -58,13 +57,11 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
   }
 
   @Override
-  public void forEachSample(final Consumer<Sample> sampleConsumer) {
-    for (final MetricData<com.codahale.metrics.Counter> metricData : allMetricData()) {
+  public void forEachMetricData(final MetricDataConsumer consumer) {
+    forEachChild(metricData -> {
       final long value = metricData.getMetric().getCount();
-      final Sample sample = new Sample(getName(), value, metricData.getLabelValues(), null, null);
-
-      sampleConsumer.accept(sample);
-    }
+      consumer.consumeCounter(this, metricData.getLabelValues(), value);
+    });
   }
 
   public static class CounterBuilder extends AbstractMetricBuilder<Counter, CounterBuilder> {
