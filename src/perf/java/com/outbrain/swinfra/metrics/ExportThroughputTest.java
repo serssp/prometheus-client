@@ -19,11 +19,11 @@ import java.util.concurrent.TimeUnit;
 /*
  * Usage:
  *
- * gradle jmh  -Pinclude=".*ThroughputTest.*"
+ * gradle jmh  -Pinclude=".*ExportThroughputTest.*"
  *
  */
 @State(Scope.Benchmark)
-public class ThroughputTest {
+public class ExportThroughputTest {
 
     private PerfTestClient currentClient;
     private byte[] output;
@@ -36,21 +36,21 @@ public class ThroughputTest {
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public void measurePrometheusSamplesTextExportThroughput() throws InterruptedException {
+    public void measurePrometheusSimpleClientTextExportThroughput() throws InterruptedException {
         measureThroughput(ioPrometheusClient);
     }
 
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public void measureSampleConsumerTextExportThroughput() throws InterruptedException {
+    public void measureTextExportThroughput() throws InterruptedException {
         measureThroughput(outbrainTextClient);
     }
 
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public void measureSampleConsumerProtobufExportThroughput() throws InterruptedException {
+    public void measureProtobufExportThroughput() throws InterruptedException {
         measureThroughput(outbrainProtobufClient);
     }
 
