@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 /*
  * Usage:
  *
- * gradle jmh  -Pinclude=".*LatencyTest.*"
+ * gradle jmh  -Pinclude=".*ExportLatencyTest.*"
  *
  *
  * Not really a latency test - This does not measure latency at a specific throughput threshold.
@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  *
  */
 @State(Scope.Benchmark)
-public class LatencyTest {
+public class ExportLatencyTest {
 
     private PerfTestClient currentClient;
     private ByteArrayOutputStream currentBuffer;
@@ -47,21 +47,21 @@ public class LatencyTest {
     @Benchmark
     @BenchmarkMode(Mode.SampleTime)
     @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    public void measurePrometheusSamplesTextExportLatency() throws InterruptedException {
+    public void measurePrometheusSimpleClientTextExportLatency() throws InterruptedException {
         measureLatency(ioPrometheusClient);
     }
 
     @Benchmark
     @BenchmarkMode(Mode.SampleTime)
     @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    public void measureSampleConsumerTextExportLatency() throws InterruptedException {
+    public void measureTextExportLatency() throws InterruptedException {
         measureLatency(outbrainTextClient);
     }
 
     @Benchmark
     @BenchmarkMode(Mode.SampleTime)
     @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    public void measureSampleConsumerProtobufExportLatency() throws InterruptedException {
+    public void measureProtobufExportLatency() throws InterruptedException {
         measureLatency(outbrainProtobufClient);
     }
 
