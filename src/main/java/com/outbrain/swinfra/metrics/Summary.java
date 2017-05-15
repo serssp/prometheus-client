@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static com.outbrain.swinfra.metrics.timing.Clock.DEFAULT_CLOCK;
-import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
 import static com.outbrain.swinfra.metrics.utils.MetricType.SUMMARY;
 
 /**
@@ -74,10 +73,7 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
     if (getLabelNames().isEmpty()) {
       return new UnlabeledChildRepo<>(new MetricData<>(createHistogram()));
     } else {
-      return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
-        final String[] labelValues = commaDelimitedStringToLabels(commaDelimitedLabelValues);
-        return new MetricData<>(createHistogram(), labelValues);
-      });
+      return new LabeledChildrenRepo<>(labelValues -> new MetricData<>(createHistogram(), labelValues));
     }
   }
 

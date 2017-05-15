@@ -10,8 +10,6 @@ import com.outbrain.swinfra.metrics.utils.MetricType;
 
 import java.util.function.DoubleSupplier;
 
-import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
-
 /**
  * An implementation of a Gauge metric. A gauge is a decimal value that can increase or decrease.
  * <p>
@@ -39,10 +37,7 @@ public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
     if (getLabelNames().isEmpty()) {
       return new UnlabeledChildRepo<>(new MetricData<>(new SettableDoubleSupplier()));
     } else {
-      return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
-        final String[] labelValues = commaDelimitedStringToLabels(commaDelimitedLabelValues);
-        return new MetricData<>(new SettableDoubleSupplier(), labelValues);
-      });
+      return new LabeledChildrenRepo<>(labelValues -> new MetricData<>(new SettableDoubleSupplier(), labelValues));
     }
   }
 

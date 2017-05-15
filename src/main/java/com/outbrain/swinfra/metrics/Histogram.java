@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.DoubleStream;
 
 import static com.outbrain.swinfra.metrics.timing.Clock.DEFAULT_CLOCK;
-import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
 import static com.outbrain.swinfra.metrics.utils.MetricType.HISTOGRAM;
 
 //todo document the fact that I favored throughput over consistency
@@ -72,10 +71,7 @@ public class Histogram extends AbstractMetric<Histogram.Buckets> implements Timi
     if (getLabelNames().isEmpty()) {
       return new UnlabeledChildRepo<>(new MetricData<>(new Buckets(buckets)));
     } else {
-      return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
-        final String[] labelValues = commaDelimitedStringToLabels(commaDelimitedLabelValues);
-        return new MetricData<>(new Buckets(buckets), labelValues);
-      });
+      return new LabeledChildrenRepo<>(labelValues -> new MetricData<>(new Buckets(buckets), labelValues));
     }
   }
 

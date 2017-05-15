@@ -10,7 +10,6 @@ import com.outbrain.swinfra.metrics.utils.MetricType;
 
 import java.util.concurrent.atomic.LongAdder;
 
-import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
 import static com.outbrain.swinfra.metrics.utils.MetricType.COUNTER;
 
 /**
@@ -45,10 +44,7 @@ public class Counter extends AbstractMetric<LongAdder> {
     if (getLabelNames().isEmpty()) {
       return new UnlabeledChildRepo<>(new MetricData<>(new LongAdder()));
     } else {
-      return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
-        final String[] labelValues = commaDelimitedStringToLabels(commaDelimitedLabelValues);
-        return new MetricData<>(new LongAdder(), labelValues);
-      });
+      return new LabeledChildrenRepo<>(labelValues -> new MetricData<>(new LongAdder(), labelValues));
     }
   }
 

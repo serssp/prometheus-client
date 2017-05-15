@@ -1,11 +1,12 @@
 package com.outbrain.swinfra.metrics.children;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static com.outbrain.swinfra.metrics.utils.LabelUtils.labelsToCommaDelimitedString;
+import static java.util.Arrays.asList;
 
 /**
  * A child metric container implementation for metrics that have labels.
@@ -13,17 +14,22 @@ import static com.outbrain.swinfra.metrics.utils.LabelUtils.labelsToCommaDelimit
  */
 public class LabeledChildrenRepo<T> implements ChildMetricRepo<T> {
 
-  private final ConcurrentMap<String, MetricData<T>> children = new ConcurrentHashMap<>();
-  private final Function<String, MetricData<T>> mappingFunction;
+  private final ConcurrentMap<List<String>, MetricData<T>> children = new ConcurrentHashMap<>();
+  private final Function<List<String>, MetricData<T>> mappingFunction;
 
-  public LabeledChildrenRepo(final Function<String, MetricData<T>> mappingFunction) {
+  public LabeledChildrenRepo(final Function<List<String>, MetricData<T>> mappingFunction) {
     this.mappingFunction = mappingFunction;
   }
 
   @Override
   public T metricForLabels(final String... labelValues) {
-    final String metricId = labelsToCommaDelimitedString(labelValues);
-    return children.computeIfAbsent(metricId, mappingFunction).getMetric();
+    final List<String> metricId = asList(labelValues);
+    return metricForLabels(metricId);
+  }
+
+  @Override
+  public T metricForLabels(List<String> labelValues) {
+    return children.computeIfAbsent(labelValues, mappingFunction).getMetric();
   }
 
   @Override

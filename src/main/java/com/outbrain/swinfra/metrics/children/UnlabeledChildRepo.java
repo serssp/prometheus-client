@@ -1,5 +1,6 @@
 package com.outbrain.swinfra.metrics.children;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -16,6 +17,11 @@ public class UnlabeledChildRepo<T> implements ChildMetricRepo<T> {
 
   @Override
   public T metricForLabels(final String... labelValues) {
+    return metricData.getMetric();
+  }
+
+  @Override
+  public T metricForLabels(List<String> labelValues) {
     return metricData.getMetric();
   }
 

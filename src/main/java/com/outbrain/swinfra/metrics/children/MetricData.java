@@ -13,9 +13,9 @@ public class MetricData<T> {
     this(metric, null);
   }
 
-  public MetricData(final T metric, final String[] labelValues) {
+  public MetricData(final T metric, final List<String> labelValues) {
     this.metric = metric;
-    this.labelValues = labelValues == null ? emptyList() : Arrays.asList(labelValues);
+    this.labelValues = labelValues == null ? emptyList() : labelValues;
   }
 
   public T getMetric() {

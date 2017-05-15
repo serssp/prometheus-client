@@ -10,11 +10,10 @@ import org.apache.commons.lang3.Validate;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
 
-import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
-import static com.outbrain.swinfra.metrics.utils.LabelUtils.labelsToCommaDelimitedString;
 import static com.outbrain.swinfra.metrics.utils.MetricType.GAUGE;
 import static java.util.Objects.requireNonNull;
 
@@ -31,14 +30,14 @@ import static java.util.Objects.requireNonNull;
  */
 public class Gauge extends AbstractMetric<DoubleSupplier> {
 
-  private final Map<String, MetricData<DoubleSupplier>> valueSuppliers;
+  private final Map<List<String>, DoubleSupplier> valueSuppliers;
 
   private Gauge(final String name,
                 final String help,
                 final String[] labelNames,
-                final Map<String[], DoubleSupplier> valueSuppliers) {
+                final Map<List<String>, DoubleSupplier> valueSuppliers) {
     super(name, help, labelNames);
-    this.valueSuppliers = convertToMetricData(valueSuppliers);
+    this.valueSuppliers = valueSuppliers;
   }
 
   public double getValue(final String... labelValues) {
@@ -56,29 +55,17 @@ public class Gauge extends AbstractMetric<DoubleSupplier> {
   @Override
   ChildMetricRepo<DoubleSupplier> createChildMetricRepo() {
     if (valueSuppliers.size() == 1 && getLabelNames().isEmpty()) {
-      final DoubleSupplier gauge = valueSuppliers.values().iterator().next().getMetric();
-      return new UnlabeledChildRepo<>(new MetricData<>(gauge));
+      final DoubleSupplier supplier = valueSuppliers.values().iterator().next();
+      return new UnlabeledChildRepo<>(new MetricData<>(supplier));
     } else {
-      final ChildMetricRepo<DoubleSupplier> result = new LabeledChildrenRepo<>(valueSuppliers::get);
-      valueSuppliers.keySet().forEach(metricLabels -> {
-        final String[] labelValues = commaDelimitedStringToLabels(metricLabels);
-        result.metricForLabels(labelValues);
-      });
+      final ChildMetricRepo<DoubleSupplier> result = new LabeledChildrenRepo<>(labelValues ->
+                                                                                 new MetricData<>(
+                                                                                   valueSuppliers.get(labelValues),
+                                                                                   labelValues));
+
+      valueSuppliers.keySet().forEach(result::metricForLabels);
       return result;
     }
-  }
-
-  private Map<String, MetricData<DoubleSupplier>> convertToMetricData(final Map<String[], DoubleSupplier> valueSuppliers) {
-    final Map<String, MetricData<DoubleSupplier>> metricData = new HashMap<>(valueSuppliers.size());
-    valueSuppliers.forEach((labelValues, valueSupplier) -> metricData.put(
-                      labelsToCommaDelimitedString(labelValues),
-                      toMetricData(valueSupplier, labelValues)));
-    return metricData;
-  }
-
-  private MetricData<DoubleSupplier> toMetricData(final DoubleSupplier valueSupplier,
-                                                       final String[] labelValues) {
-    return new MetricData<>(valueSupplier, labelValues);
   }
 
   @Override
@@ -89,12 +76,13 @@ public class Gauge extends AbstractMetric<DoubleSupplier> {
   public interface GaugeValueSuppliersBuilder {
 
     GaugeValueSuppliersBuilder withValueSupplier(final DoubleSupplier valueSupplier, final String... labelValues);
+
     Gauge build();
   }
 
   public static class GaugeBuilder extends AbstractMetricBuilder<Gauge, GaugeBuilder> implements GaugeValueSuppliersBuilder {
 
-    private final Map<String[], DoubleSupplier> valueSuppliers = new HashMap<>();
+    private final Map<List<String>, DoubleSupplier> valueSuppliers = new HashMap<>();
 
     public GaugeBuilder(final String name, final String help) {
       super(name, help);
@@ -109,10 +97,11 @@ public class Gauge extends AbstractMetric<DoubleSupplier> {
     /**
      * @see Gauge for more information on what value suppliers are and how they relate to label values
      */
-    public GaugeValueSuppliersBuilder withValueSupplier(final DoubleSupplier valueSupplier, final String... labelValues) {
+    public GaugeValueSuppliersBuilder withValueSupplier(final DoubleSupplier valueSupplier,
+                                                        final String... labelValues) {
       validateValueSupplier(valueSupplier);
       validateValueSupplierLabels(labelNames.length, labelValues);
-      valueSuppliers.put(labelValues, valueSupplier);
+      valueSuppliers.put(Arrays.asList(labelValues), valueSupplier);
       return this;
     }
 
@@ -127,10 +116,10 @@ public class Gauge extends AbstractMetric<DoubleSupplier> {
 
     private void validateValueSupplierLabels(final int numOfLabels, final String[] labelValues) {
       Validate.isTrue(
-              labelValues.length == numOfLabels,
-              "Labels %s does not contain the expected amount %s",
-              Arrays.toString(labelValues),
-              numOfLabels);
+        labelValues.length == numOfLabels,
+        "Labels %s does not contain the expected amount %s",
+        Arrays.toString(labelValues),
+        numOfLabels);
     }
   }
 }
