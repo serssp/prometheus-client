@@ -5,15 +5,11 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
-import com.outbrain.swinfra.metrics.samples.SampleCreator;
-import io.prometheus.client.Collector;
-import io.prometheus.client.Collector.MetricFamilySamples.Sample;
-
-import java.util.List;
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer;
+import com.outbrain.swinfra.metrics.utils.MetricType;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
-import static io.prometheus.client.Collector.Type.COUNTER;
-import static java.util.Collections.singletonList;
+import static com.outbrain.swinfra.metrics.utils.MetricType.COUNTER;
 
 /**
  * An implementation of a Counter metric. A counter is a whole number that can only increase its value.
@@ -45,7 +41,7 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
 
   @Override
   ChildMetricRepo<com.codahale.metrics.Counter> createChildMetricRepo() {
-    if (getLabelNames().size() == 0) {
+    if (getLabelNames().isEmpty()) {
       return new UnlabeledChildRepo<>(new MetricData<>(new com.codahale.metrics.Counter()));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
@@ -56,18 +52,16 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
   }
 
   @Override
-  public Collector.Type getType() {
+  public MetricType getType() {
     return COUNTER;
   }
 
   @Override
-  List<Sample> createSamples(final MetricData<com.codahale.metrics.Counter> metricData,
-                             final SampleCreator sampleCreator) {
-    return singletonList(sampleCreator.createSample(getName(),
-                                                    getLabelNames(),
-                                                    metricData.getLabelValues(),
-                                                    metricData.getMetric().getCount()
-    ));
+  public void forEachMetricData(final MetricDataConsumer consumer) {
+    forEachChild(metricData -> {
+      final long value = metricData.getMetric().getCount();
+      consumer.consumeCounter(this, metricData.getLabelValues(), value);
+    });
   }
 
   public static class CounterBuilder extends AbstractMetricBuilder<Counter, CounterBuilder> {

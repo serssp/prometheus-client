@@ -1,13 +1,18 @@
 package com.outbrain.swinfra.metrics;
 
-import com.outbrain.swinfra.metrics.samples.SampleCreator;
-import io.prometheus.client.Collector;
-import io.prometheus.client.Collector.MetricFamilySamples;
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer;
+import com.outbrain.swinfra.metrics.utils.MetricType;
+
+import java.util.List;
 
 public interface Metric {
-  Collector.Type getType();
-
-  MetricFamilySamples getSample(final SampleCreator sampleCreator);
+  MetricType getType();
 
   String getName();
+
+  String getHelp();
+
+  List<String> getLabelNames();
+
+  void forEachMetricData(MetricDataConsumer consumer);
 }

@@ -1,21 +1,23 @@
 package com.outbrain.swinfra.metrics
 
-import com.outbrain.swinfra.metrics.samples.SampleCreator
-import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer
 import com.outbrain.swinfra.metrics.timing.Timer
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.function.Consumer
+
+import static com.outbrain.swinfra.metrics.Histogram.Buckets
 import static com.outbrain.swinfra.metrics.Histogram.HistogramBuilder
-import static io.prometheus.client.Collector.MetricFamilySamples
-import static io.prometheus.client.Collector.MetricFamilySamples.Sample
-import static io.prometheus.client.Collector.Type.HISTOGRAM
+import static com.outbrain.swinfra.metrics.utils.MetricType.HISTOGRAM
 
 class HistogramTest extends Specification {
 
-    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator([:])
     private static final String NAME = "myHisto"
     private static final String HELP = "HELP"
+
+    private final Consumer<Buckets> consumer = Mock(Consumer)
+    private final MetricDataConsumer metricDataConsumer = Mock(MetricDataConsumer)
 
     def 'Histogram should return the correct type'() {
         given:
@@ -27,55 +29,42 @@ class HistogramTest extends Specification {
 
     def 'Newly created histogram, with no specific buckets, should contain the default buckets'() {
         given:
-            final List<Sample> samples = generateHistogramSamples(["0.005": 0, "0.01": 0, "0.025": 0, "0.05": 0, "0.075": 0, "0.1": 0, "0.25": 0, "0.5": 0, "0.75": 0, "1.0": 0, "2.5": 0, "5.0": 0, "7.5": 0, "10.0": 0, "+Inf": 0], 0)
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, HISTOGRAM, HELP, samples)
-
             final Histogram histogram = new HistogramBuilder(NAME, HELP).build()
-
-        expect:
-            histogram.getSample(sampleCreator) == metricFamilySamples
+        when:
+            histogram.forEachChild(consumer)
+        then:
+            1 * consumer.accept({ it.metric.values.sum == 0 && it.labelValues == [] })
+            0 * consumer.accept(_)
     }
 
-    def 'Histogram with defined buckets should return samples relevant for these buckets'() {
+    def 'consumeHistogram should be called for each metric data'() {
         given:
-            final List<Sample> samples = generateHistogramSamples(
-                ["1.0": 1, "10.0": 2, "100.0": 2, "+Inf": 1],
-                1 + 5 + 5 + 50 + 50 + 150)
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, HISTOGRAM, HELP, samples)
-
             final Histogram histogram = new HistogramBuilder(NAME, HELP).withBuckets(1, 10, 100).build()
-
-        when:
             histogram.observe(1)
             histogram.observe(5)
             histogram.observe(5)
             histogram.observe(50)
             histogram.observe(50)
             histogram.observe(150)
-
+        when:
+            histogram.forEachMetricData(metricDataConsumer)
         then:
-            histogram.getSample(sampleCreator) == metricFamilySamples
+            1 * metricDataConsumer.consumeHistogram(histogram, [], {
+                it.count == 6 &&
+                it.sum ==  1 + 5 + 5 + 50 + 50 + 150 &&
+                it.buckets == [1, 3, 5, 6]
+            })
+        0 * metricDataConsumer._
     }
 
     def 'Histogram with defined buckets and labels should return correct samples with correct lables'() {
         given:
-            final String labelName = "lab1"
-            final List<String> labelValues = ["val1", "val2", "val3"]
-            final List<Sample> samplesWithoutLabels = generateHistogramSamples(
-                ["1.0": 1, "10.0": 2, "100.0": 2, "+Inf": 1],
-                1 + 5 + 5 + 50 + 50 + 150)
-
-            final List<Sample> samples = labelValues.collect {
-                addLabelsToSample(samplesWithoutLabels, [labelName], [it])
-            }.flatten()
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, HISTOGRAM, HELP, samples)
-
+            final String labelName = 'lab1'
+            final List<String> labelValues = ['val1', 'val2', 'val3']
             final Histogram histogram = new HistogramBuilder(NAME, HELP)
                 .withLabels(labelName)
                 .withBuckets(1, 10, 100)
                 .build()
-
-        when:
             labelValues.each {
                 histogram.observe(1, it)
                 histogram.observe(5, it)
@@ -84,13 +73,25 @@ class HistogramTest extends Specification {
                 histogram.observe(50, it)
                 histogram.observe(150, it)
             }
-
+        when:
+            histogram.forEachMetricData(metricDataConsumer)
         then:
-            final MetricFamilySamples actualMetricFamilySamples = histogram.getSample(sampleCreator)
-            actualMetricFamilySamples.samples.sort() == metricFamilySamples.samples.sort()
-            actualMetricFamilySamples.name == metricFamilySamples.name
-            actualMetricFamilySamples.help == metricFamilySamples.help
-            actualMetricFamilySamples.type == metricFamilySamples.type
+            1 * metricDataConsumer.consumeHistogram(histogram, ['val1'], {
+                it.count == 6 &&
+                        it.sum ==  1 + 5 + 5 + 50 + 50 + 150 &&
+                        it.buckets == [1, 3, 5, 6]
+            })
+            1 * metricDataConsumer.consumeHistogram(histogram, ['val2'], {
+                it.count == 6 &&
+                        it.sum ==  1 + 5 + 5 + 50 + 50 + 150 &&
+                        it.buckets == [1, 3, 5, 6]
+            })
+            1 * metricDataConsumer.consumeHistogram(histogram, ['val3'], {
+                it.count == 6 &&
+                        it.sum ==  1 + 5 + 5 + 50 + 50 + 150 &&
+                        it.buckets == [1, 3, 5, 6]
+            })
+            0 * metricDataConsumer._
     }
 
     @Unroll
@@ -111,44 +112,48 @@ class HistogramTest extends Specification {
 
     def "A Histogram with equal width buckets with start: 0.5, width: 1; count: 1 should have exactly two buckets"() {
         given:
-            final List<Sample> samples = generateHistogramSamples(["0.5": 0, "+Inf": 0], 0)
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, HISTOGRAM, HELP, samples)
-
             final Histogram histogram = new HistogramBuilder(NAME, HELP).withEqualWidthBuckets(0.5, 1, 1).build()
-
-        expect:
-            histogram.getSample(sampleCreator) == metricFamilySamples
+        when:
+            histogram.forEachChild(consumer)
+        then:
+            1 * consumer.accept({
+                    it.metric.values.sum == 0.0 &&
+                    it.metric.values.buckets == [0, 0] &&
+                    it.metric.values.bucketUpperBounds == [0.5d, Double.POSITIVE_INFINITY] })
+            0 * consumer.accept(_)
     }
 
     def "A Histogram with equal width buckets should return the correct buckets"() {
         given:
-            final List<Sample> samples = generateHistogramSamples(["0.5": 0, "1.5": 0, "2.5": 0, "3.5": 0, "+Inf": 0], 0)
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, HISTOGRAM, HELP, samples)
-
             final Histogram histogram = new HistogramBuilder(NAME, HELP).withEqualWidthBuckets(0.5, 1, 4).build()
-
-        expect:
-            histogram.getSample(sampleCreator) == metricFamilySamples
+        when:
+            histogram.forEachChild(consumer)
+        then:
+            1 * consumer.accept({
+                it.metric.values.sum == 0.0 &&
+                        it.metric.values.buckets == [0, 0, 0, 0, 0] &&
+                        it.metric.values.bucketUpperBounds == [0.5d, 1.5d, 2.5d, 3.5d, Double.POSITIVE_INFINITY] })
+            0 * consumer.accept(_)
     }
 
     def "A timer should add the measured samples to the histogram"() {
         final TestClock clock = new TestClock()
         given:
-            final List<Sample> samples = generateHistogramSamples(["1.5": 1, "2.5": 1, "+Inf": 1], 6)
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, HISTOGRAM, HELP, samples)
-
             final Histogram histogram = new HistogramBuilder(NAME, HELP).withClock(clock).withBuckets(1.5, 2.5).build()
-
-        when:
             [1, 2, 3].each {
                 clock.setTick(0)
                 final Timer timer = histogram.startTimer()
                 clock.setTick(it)
                 timer.stop()
             }
-
+        when:
+            histogram.forEachChild(consumer)
         then:
-            histogram.getSample(sampleCreator) == metricFamilySamples
+            1 * consumer.accept({
+                it.metric.values.sum == 6.0 &&
+                        it.metric.values.buckets == [1, 2, 3] &&
+                        it.metric.values.bucketUpperBounds == [1.5d, 2.5d, Double.POSITIVE_INFINITY] })
+            0 * consumer.accept(_)
     }
 
     def 'Histogram without labels should throw an exception when attempting to observe a value with labels'() {
@@ -176,48 +181,4 @@ class HistogramTest extends Specification {
         where:
             labels << [[], ["v1", ""], ["v1", "v2", "v3"]]
     }
-
-    /**
-     *
-     * @param eventsForBucket eventsForBucket - maps [bucket: numOfEvents]
-     * For example, generateHistogramSamples(["1":1, "10":2, "100":3, "+Inf":4])
-     * Means there was one event with value "1" or less, another one with the value between "1" (exclusive) and "10" (inclusive), another between
-     * "10" and "100" and another that's more than "100"
-     * The following observations correspond to this example:
-     * histo.observe(1)
-     * histo.observe(5)
-     * histo.observe(50)
-     * histo.observe(150)
-     * @param sumOfSamples The sum of all the samples
-     * @return
-     */
-    private static List<Sample> generateHistogramSamples(final Map<String, Long> eventsForBucket,
-                                                         final double sumOfSamples) {
-        long totalEvents = 0
-        final List<Sample> result = []
-        for (final Map.Entry<String, Long> bucketEvents : eventsForBucket) {
-            final String bucket = bucketEvents.getKey()
-            final long events = bucketEvents.getValue()
-            totalEvents += events
-            result.add(new Sample("${NAME}_bucket", ["le"] as List<String>, [bucket] as List<String>, totalEvents))
-        }
-        result.add(new Sample("${NAME}_count", [] as List<String>, [] as List<String>, totalEvents))
-        result.add(new Sample("${NAME}_sum", [] as List<String>, [] as List<String>, sumOfSamples))
-        return result
-    }
-
-    private static List<Sample> addLabelsToSample(final List<Sample> origin,
-                                                  final List<String> labelNames,
-                                                  final List<String> labelValues) {
-        return origin.collect {
-            final Sample newSample =
-                new Sample(
-                    it.name,
-                    (labelNames + it.labelNames) as List<String>,
-                    (labelValues + it.labelValues) as List<String>,
-                    it.value)
-            return newSample
-        }
-    }
-
 }

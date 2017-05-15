@@ -5,16 +5,12 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
-import com.outbrain.swinfra.metrics.samples.SampleCreator;
-import io.prometheus.client.Collector;
-import io.prometheus.client.Collector.MetricFamilySamples.Sample;
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer;
+import com.outbrain.swinfra.metrics.utils.MetricType;
 
-import java.util.List;
 import java.util.function.DoubleSupplier;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
-import static io.prometheus.client.Collector.Type.GAUGE;
-import static java.util.Collections.singletonList;
 
 /**
  * An implementation of a Gauge metric. A gauge is a decimal value that can increase or decrease.
@@ -30,13 +26,8 @@ import static java.util.Collections.singletonList;
  */
 public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
 
-  SettableGauge(String name, String help, String[] labelNames) {
+  SettableGauge(final String name, final String help, final String[] labelNames) {
     super(name, help, labelNames);
-  }
-
-  @Override
-  public Collector.Type getType() {
-    return GAUGE;
   }
 
   public double getValue(final String... labelValues) {
@@ -55,16 +46,21 @@ public class SettableGauge extends AbstractMetric<SettableDoubleSupplier> {
     }
   }
 
+
   @Override
-  List<Sample> createSamples(MetricData<SettableDoubleSupplier> metricData, SampleCreator sampleCreator) {
-    return singletonList(sampleCreator.createSample(getName(),
-                                                    getLabelNames(),
-                                                    metricData.getLabelValues(),
-                                                    metricData.getMetric().getAsDouble()
-    ));
+  public MetricType getType() {
+    return MetricType.GAUGE;
   }
 
-  public void set(double value, final String... labelValues) {
+  @Override
+  public void forEachMetricData(final MetricDataConsumer consumer) {
+    forEachChild(metricData -> {
+      final double value = metricData.getMetric().getAsDouble();
+      consumer.consumeGauge(this, metricData.getLabelValues(), value);
+    });
+  }
+
+  public void set(final double value, final String... labelValues) {
     metricForLabels(labelValues).set(value);
   }
 

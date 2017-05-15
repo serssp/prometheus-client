@@ -1,20 +1,37 @@
 package com.outbrain.swinfra.metrics
 
-import com.outbrain.swinfra.metrics.samples.SampleCreator
-import com.outbrain.swinfra.metrics.samples.StaticLablesSampleCreator
+import com.outbrain.swinfra.metrics.children.MetricData
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.function.Consumer
+
 import static com.outbrain.swinfra.metrics.Counter.CounterBuilder
-import static io.prometheus.client.Collector.MetricFamilySamples
-import static io.prometheus.client.Collector.MetricFamilySamples.Sample
-import static io.prometheus.client.Collector.Type.COUNTER
 
 class CounterTest extends Specification {
 
     private static final String NAME = "NAME"
     private static final String HELP = "HELP"
-    private static final SampleCreator sampleCreator = new StaticLablesSampleCreator([:])
+
+
+    private final Consumer<MetricData<com.codahale.metrics.Counter>> consumer = Mock(Consumer)
+    private final MetricDataConsumer metricDataConsumer = Mock(MetricDataConsumer)
+
+
+    def 'consumeCounter will be called by MetricDataConsumer for each child'() {
+        given:
+            final Counter counter = new CounterBuilder(NAME, HELP).
+                    withLabels('a').build()
+        when:
+            counter.inc(1, 'A')
+            counter.inc(2, 'B')
+            counter.forEachMetricData(metricDataConsumer)
+        then:
+            1 * metricDataConsumer.consumeCounter(counter, ['A'], 1)
+            1 * metricDataConsumer.consumeCounter(counter, ['B'], 2)
+            0 * metricDataConsumer._
+    }
 
     @Unroll
     def 'Counter should return #expectedValue after incrementing #increment times'() {
@@ -56,25 +73,35 @@ class CounterTest extends Specification {
             10          | 100
     }
 
+    def 'Counter should return the correct samples without any labels defined'() {
+        given:
+            final Counter counter = new CounterBuilder(NAME, HELP).build()
+
+            counter.inc(17)
+        when:
+            counter.forEachChild(consumer)
+        then:
+            1 * consumer.accept({ it.metric.count == 17 && it.labelValues == [] })
+            0 * consumer.accept(_)
+    }
+
     def 'Counter should return the correct samples with labels defined'() {
-        final String[] labelNames = ["label1", "label2"]
         final String[] labelValues1 = ["val1", "val2"]
         final String[] labelValues2 = ["val3", "val4"]
 
         given:
-            final Sample sample1 = new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues1), 5)
-            final Sample sample2 = new Sample(NAME, Arrays.asList(labelNames), Arrays.asList(labelValues2), 6)
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(NAME, COUNTER, HELP, [sample1, sample2])
-        when:
             final Counter counter = new CounterBuilder(NAME, HELP)
                 .withLabels("label1", "label2")
                 .build()
 
             counter.inc(5, labelValues1)
             counter.inc(6, labelValues2)
-
+        when:
+            counter.forEachChild(consumer)
         then:
-            counter.getSample(sampleCreator) == metricFamilySamples
+            1 * consumer.accept({ it.metric.count == 5 && it.labelValues == labelValues1 as List })
+            1 * consumer.accept({ it.metric.count == 6 && it.labelValues == labelValues2 as List })
+            0 * consumer.accept(_)
     }
 
     def 'Counter should return the correct samples with subsystem defined'() {
@@ -82,16 +109,11 @@ class CounterTest extends Specification {
         final String fullName = subsystem + "_" + NAME
 
         given:
-            final List<Sample> samples = [new Sample(fullName, [], [], 0)]
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(fullName, COUNTER, HELP, samples)
-
-        when:
             final Counter counter = new CounterBuilder(NAME, HELP)
                 .withSubsystem(subsystem)
                 .build()
-
-        then:
-            counter.getSample(sampleCreator) == metricFamilySamples
+        expect:
+            counter.getName() == fullName
     }
 
     def 'Counter should return the correct samples with namespace and subsystem defined'() {
@@ -100,17 +122,12 @@ class CounterTest extends Specification {
         final String fullName = namespace + "_" + subsystem + "_" + NAME
 
         given:
-            final List<Sample> samples = [new Sample(fullName, [], [], 0)]
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(fullName, COUNTER, HELP, samples)
-
-        when:
             final Counter counter = new CounterBuilder(NAME, HELP)
                 .withNamespace(namespace)
                 .withSubsystem(subsystem)
                 .build()
-
-        then:
-            counter.getSample(sampleCreator) == metricFamilySamples
+        expect:
+            counter.getName() == fullName
     }
 
     def 'Counter should return the correct samples with namespace defined'() {
@@ -118,16 +135,11 @@ class CounterTest extends Specification {
         final String fullName = namespace + "_" + NAME
 
         given:
-            final List<Sample> samples = [new Sample(fullName, [], [], 0)]
-            final MetricFamilySamples metricFamilySamples = new MetricFamilySamples(fullName, COUNTER, HELP, samples)
-
-        when:
             final Counter counter = new CounterBuilder(NAME, HELP)
                 .withNamespace(namespace)
                 .build()
-
-        then:
-            counter.getSample(sampleCreator) == metricFamilySamples
+        expect:
+            counter.getName() == fullName
     }
 
     def 'Counter without labels should throw an exception when attempting to increment with labels'() {

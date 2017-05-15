@@ -5,26 +5,25 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.SlidingTimeWindowReservoir;
 import com.codahale.metrics.SlidingWindowReservoir;
+import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.UniformReservoir;
 import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
-import com.outbrain.swinfra.metrics.samples.SampleCreator;
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer;
+import com.outbrain.swinfra.metrics.data.SummaryData;
 import com.outbrain.swinfra.metrics.timing.Clock;
 import com.outbrain.swinfra.metrics.timing.Timer;
 import com.outbrain.swinfra.metrics.timing.TimingMetric;
-import com.outbrain.swinfra.metrics.utils.QuantileUtils;
-import io.prometheus.client.Collector;
-import io.prometheus.client.Collector.MetricFamilySamples.Sample;
+import com.outbrain.swinfra.metrics.utils.MetricType;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static com.outbrain.swinfra.metrics.timing.Clock.DEFAULT_CLOCK;
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
-import static io.prometheus.client.Collector.Type.SUMMARY;
+import static com.outbrain.swinfra.metrics.utils.MetricType.SUMMARY;
 
 /**
  * An implementation of a Summary metric. A summary is a histogram that samples its measurements and has no predefined
@@ -51,6 +50,7 @@ import static io.prometheus.client.Collector.Type.SUMMARY;
  */
 public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
 
+
   private final Supplier<Reservoir> reservoirSupplier;
   private final Clock clock;
 
@@ -71,7 +71,7 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
 
   @Override
   ChildMetricRepo<Histogram> createChildMetricRepo() {
-    if (getLabelNames().size() == 0) {
+    if (getLabelNames().isEmpty()) {
       return new UnlabeledChildRepo<>(new MetricData<>(createHistogram()));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
@@ -86,14 +86,16 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
   }
 
   @Override
-  public Collector.Type getType() {
+  public MetricType getType() {
     return SUMMARY;
   }
 
   @Override
-  List<Sample> createSamples(final MetricData<Histogram> metricData,
-                             final SampleCreator sampleCreator) {
-    return QuantileUtils.createSamplesFromSnapshot(metricData, getName(), getLabelNames(), sampleCreator);
+  public void forEachMetricData(final MetricDataConsumer consumer) {
+    forEachChild(metricData -> {
+      final CodahaleSummaryData snapshot = new CodahaleSummaryData(metricData.getMetric().getCount(), metricData.getMetric().getSnapshot());
+      consumer.consumeSummary(this, metricData.getLabelValues(), snapshot);
+    });
   }
 
   @Override
@@ -213,6 +215,63 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
     @Override
     public long getTick() {
       return clock.getTick(TimeUnit.NANOSECONDS);
+    }
+  }
+
+  private static class CodahaleSummaryData implements SummaryData {
+
+    private final long count;
+    private final Snapshot snapshot;
+    private long sum;
+
+
+    private CodahaleSummaryData(final long count, final Snapshot snapshot) {
+      this.count = count;
+      this.snapshot = snapshot;
+      sum = 0;
+      for (final long value : snapshot.getValues()) {
+        sum += value;
+      }
+    }
+
+    @Override
+    public long getCount() {
+      return count;
+    }
+
+    @Override
+    public double getSum() {
+      return sum;
+    }
+
+    @Override
+    public double getMedian() {
+      return snapshot.getMedian();
+    }
+
+    @Override
+    public double get75thPercentile() {
+      return snapshot.get75thPercentile();
+    }
+
+    @Override
+    public double get95thPercentile() {
+      return snapshot.get95thPercentile();
+    }
+
+    @Override
+    public double get98thPercentile() {
+      return snapshot.get98thPercentile();
+    }
+
+    @Override
+    public double get99thPercentile() {
+      return snapshot.get99thPercentile();
+    }
+
+    @Override
+    public double get999thPercentile() {
+      return snapshot.get999thPercentile();
     }
   }
 }

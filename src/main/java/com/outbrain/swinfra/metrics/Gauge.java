@@ -4,21 +4,18 @@ import com.outbrain.swinfra.metrics.children.ChildMetricRepo;
 import com.outbrain.swinfra.metrics.children.LabeledChildrenRepo;
 import com.outbrain.swinfra.metrics.children.MetricData;
 import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
-import com.outbrain.swinfra.metrics.samples.SampleCreator;
-import io.prometheus.client.Collector;
-import io.prometheus.client.Collector.MetricFamilySamples.Sample;
+import com.outbrain.swinfra.metrics.data.MetricDataConsumer;
+import com.outbrain.swinfra.metrics.utils.MetricType;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
 
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.labelsToCommaDelimitedString;
-import static io.prometheus.client.Collector.Type.GAUGE;
-import static java.util.Collections.singletonList;
+import static com.outbrain.swinfra.metrics.utils.MetricType.GAUGE;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -49,17 +46,16 @@ public class Gauge extends AbstractMetric<DoubleSupplier> {
   }
 
   @Override
-  List<Sample> createSamples(final MetricData<DoubleSupplier> metricData, final SampleCreator sampleCreator) {
-    return singletonList(sampleCreator.createSample(getName(),
-                                                    getLabelNames(),
-                                                    metricData.getLabelValues(),
-                                                    metricData.getMetric().getAsDouble()
-    ));
+  public void forEachMetricData(final MetricDataConsumer consumer) {
+    forEachChild(metricData -> {
+      final double value = metricData.getMetric().getAsDouble();
+      consumer.consumeGauge(this, metricData.getLabelValues(), value);
+    });
   }
 
   @Override
   ChildMetricRepo<DoubleSupplier> createChildMetricRepo() {
-    if (valueSuppliers.size() == 1 && getLabelNames().size() == 0) {
+    if (valueSuppliers.size() == 1 && getLabelNames().isEmpty()) {
       final DoubleSupplier gauge = valueSuppliers.values().iterator().next().getMetric();
       return new UnlabeledChildRepo<>(new MetricData<>(gauge));
     } else {
@@ -86,7 +82,7 @@ public class Gauge extends AbstractMetric<DoubleSupplier> {
   }
 
   @Override
-  public Collector.Type getType() {
+  public MetricType getType() {
     return GAUGE;
   }
 
