@@ -214,10 +214,8 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
 
     @Override
     public long getTick() {
-      return clock.getTick();
+      return clock.getTick(TimeUnit.NANOSECONDS);
     }
-
-
   }
 
   private static class CodahaleSummaryData implements SummaryData {

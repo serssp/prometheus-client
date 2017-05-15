@@ -3,10 +3,11 @@ plugins {
     id 'groovy'
     id 'maven'
     id 'com.jfrog.bintray' version '1.7'
+    id 'net.researchgate.release' version '2.4.0'
 }
 
 group = 'com.outbrain.swinfra'
-version = '0.15-SNAPSHOT'
+version = '0.18-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -142,6 +143,7 @@ artifacts {
 }
 
 bintray {
+    //Required the system properties -Dbintray.user=<user> -Dbintray.key=<key>
     user = System.getProperty('bintray.user')
     key = System.getProperty('bintray.key')
     configurations = ['archives']
@@ -153,7 +155,7 @@ bintray {
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/outbrain/prometheus-client.git'
         version {
-            name = project.version
+            name = version
         }
     }
 }
