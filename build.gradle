@@ -7,7 +7,6 @@ plugins {
 }
 
 group = 'com.outbrain.swinfra'
-version = '0.18-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -155,7 +154,7 @@ bintray {
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/outbrain/prometheus-client.git'
         version {
-            name = version
+            name = project.version
         }
     }
 }
