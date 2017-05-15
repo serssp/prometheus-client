@@ -8,6 +8,8 @@ import com.outbrain.swinfra.metrics.children.UnlabeledChildRepo;
 import com.outbrain.swinfra.metrics.data.MetricDataConsumer;
 import com.outbrain.swinfra.metrics.utils.MetricType;
 
+import java.util.concurrent.atomic.LongAdder;
+
 import static com.outbrain.swinfra.metrics.utils.LabelUtils.commaDelimitedStringToLabels;
 import static com.outbrain.swinfra.metrics.utils.MetricType.COUNTER;
 
@@ -19,34 +21,33 @@ import static com.outbrain.swinfra.metrics.utils.MetricType.COUNTER;
  *
  * @see <a href="https://prometheus.io/docs/concepts/metric_types/#counter">Prometheus counter metric</a>
  */
-public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
+public class Counter extends AbstractMetric<LongAdder> {
 
   private Counter(final String name, final String help, final String[] labelNames) {
     super(name, help, labelNames);
   }
 
   public void inc(final String... labelValues) {
-    validateLabelValues(labelValues);
     inc(1, labelValues);
   }
 
   public void inc(final long n, final String... labelValues) {
     validateLabelValues(labelValues);
-    metricForLabels(labelValues).inc(n);
+    metricForLabels(labelValues).add(n);
   }
 
   public long getValue(final String... labelValues) {
-    return metricForLabels(labelValues).getCount();
+    return metricForLabels(labelValues).longValue();
   }
 
   @Override
-  ChildMetricRepo<com.codahale.metrics.Counter> createChildMetricRepo() {
+  ChildMetricRepo<LongAdder> createChildMetricRepo() {
     if (getLabelNames().isEmpty()) {
-      return new UnlabeledChildRepo<>(new MetricData<>(new com.codahale.metrics.Counter()));
+      return new UnlabeledChildRepo<>(new MetricData<>(new LongAdder()));
     } else {
       return new LabeledChildrenRepo<>(commaDelimitedLabelValues -> {
         final String[] labelValues = commaDelimitedStringToLabels(commaDelimitedLabelValues);
-        return new MetricData<>(new com.codahale.metrics.Counter(), labelValues);
+        return new MetricData<>(new LongAdder(), labelValues);
       });
     }
   }
@@ -59,7 +60,7 @@ public class Counter extends AbstractMetric<com.codahale.metrics.Counter> {
   @Override
   public void forEachMetricData(final MetricDataConsumer consumer) {
     forEachChild(metricData -> {
-      final long value = metricData.getMetric().getCount();
+      final long value = metricData.getMetric().longValue();
       consumer.consumeCounter(this, metricData.getLabelValues(), value);
     });
   }

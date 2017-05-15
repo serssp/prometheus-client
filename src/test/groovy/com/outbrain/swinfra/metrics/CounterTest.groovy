@@ -5,6 +5,7 @@ import com.outbrain.swinfra.metrics.data.MetricDataConsumer
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.concurrent.atomic.LongAdder
 import java.util.function.Consumer
 
 import static com.outbrain.swinfra.metrics.Counter.CounterBuilder
@@ -15,7 +16,7 @@ class CounterTest extends Specification {
     private static final String HELP = "HELP"
 
 
-    private final Consumer<MetricData<com.codahale.metrics.Counter>> consumer = Mock(Consumer)
+    private final Consumer<MetricData<LongAdder>> consumer = Mock(Consumer)
     private final MetricDataConsumer metricDataConsumer = Mock(MetricDataConsumer)
 
 
@@ -81,7 +82,7 @@ class CounterTest extends Specification {
         when:
             counter.forEachChild(consumer)
         then:
-            1 * consumer.accept({ it.metric.count == 17 && it.labelValues == [] })
+            1 * consumer.accept({ it.metric.longValue() == 17 && it.labelValues == [] })
             0 * consumer.accept(_)
     }
 
@@ -99,8 +100,8 @@ class CounterTest extends Specification {
         when:
             counter.forEachChild(consumer)
         then:
-            1 * consumer.accept({ it.metric.count == 5 && it.labelValues == labelValues1 as List })
-            1 * consumer.accept({ it.metric.count == 6 && it.labelValues == labelValues2 as List })
+            1 * consumer.accept({ it.metric.longValue() == 5 && it.labelValues == labelValues1 as List })
+            1 * consumer.accept({ it.metric.longValue() == 6 && it.labelValues == labelValues2 as List })
             0 * consumer.accept(_)
     }
 
