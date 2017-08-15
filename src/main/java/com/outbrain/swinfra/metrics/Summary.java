@@ -63,7 +63,7 @@ public class Summary extends AbstractMetric<Histogram> implements TimingMetric {
     this.clock = clock;
   }
 
-  public void observe(final int value, final String... labelValues) {
+  public void observe(final long value, final String... labelValues) {
     validateLabelValues(labelValues);
     metricForLabels(labelValues).update(value);
   }
